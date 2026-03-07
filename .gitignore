@@ -29,6 +29,7 @@ venv/
 .venv/
 private.key
 public.key
+uv.lock
 
 # path for the test lib.
 plex/

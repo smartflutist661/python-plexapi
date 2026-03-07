@@ -31,7 +31,7 @@ jobs:
         key: >-
           ${{ env.CACHE_VERSION }}-${{ runner.os }}-venv-${{
           steps.python.outputs.python-version }}-${{
-          hashFiles('requirements_dev.txt') }}
+          hashFiles('pyproject.toml') }}
         restore-keys: >-
           ${{ env.CACHE_VERSION }}-${{ runner.os }}-venv-${{
           steps.python.outputs.python-version }}-
@@ -42,8 +42,7 @@ jobs:
         python -m venv venv
         . venv/bin/activate
         pip install -U pip
-        pip install -r requirements_dev.txt
-        pip install -e .
+        pip install -e . --group dev
 
     - name: Set Plex credentials
       run: |
