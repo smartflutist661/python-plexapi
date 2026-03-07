@@ -9,24 +9,32 @@ It can be used manually using:
 python plex-bootraptest.py --no-docker --server-name name_of_server --account Hellowlol --password yourpassword
 
 """
+
 import argparse
-from datetime import datetime
 import os
 import shutil
 import socket
 import time
+from datetime import datetime
 from glob import glob
 from os import makedirs
-from shutil import copyfile, which
+from shutil import (
+    copyfile,
+    which,
+)
 from subprocess import call
 from uuid import uuid4
 
+from tqdm import tqdm
+
 import plexapi
-from plexapi.exceptions import BadRequest, NotFound
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
 from plexapi.myplex import MyPlexAccount
 from plexapi.server import PlexServer
 from plexapi.utils import SEARCHTYPES
-from tqdm import tqdm
 
 DOCKER_CMD = [
     "docker",
@@ -117,7 +125,6 @@ def setup_music(music_path, docker=False):
     makedirs(music_path, exist_ok=True)
 
     all_music = {
-
         "Broke for free": {
             "Layers": [
                 "1 - As Colorful As Ever.mp3",
@@ -132,7 +139,6 @@ def setup_music(music_path, docker=False):
                 # "10 - A Year.mp3",
             ]
         },
-
     }
 
     m3u_file = open(os.path.join(music_path, "playlist.m3u"), "w")
@@ -217,9 +223,7 @@ def setup_show(tvshows_path):
         for season_id, episodes in enumerate(seasons, start=1):
             for episode_id in episodes:
                 expected_media_count += 1
-                episode_path = get_tvshow_path(
-                    tvshows_path, show_name, season_id, episode_id
-                )
+                episode_path = get_tvshow_path(tvshows_path, show_name, season_id, episode_id)
                 if not os.path.isfile(episode_path):
                     copyfile(STUB_MOVIE_PATH, episode_path)
 
@@ -227,14 +231,13 @@ def setup_show(tvshows_path):
 
 
 def get_default_ip():
-    """ Return the first IP address of the current machine if available. """
+    """Return the first IP address of the current machine if available."""
     available_ips = list(
         set(
             [
                 i[4][0]
                 for i in socket.getaddrinfo(socket.gethostname(), None)
-                if i[4][0] not in ("127.0.0.1", "::1")
-                and not i[4][0].startswith("fe80:")
+                if i[4][0] not in ("127.0.0.1", "::1") and not i[4][0].startswith("fe80:")
             ]
         )
     )
@@ -242,7 +245,7 @@ def get_default_ip():
 
 
 def get_plex_account(opts):
-    """ Authenticate with Plex using the command line options. """
+    """Authenticate with Plex using the command line options."""
     if not opts.unclaimed:
         if opts.token:
             return MyPlexAccount(token=opts.token)
@@ -251,18 +254,18 @@ def get_plex_account(opts):
 
 
 def get_movie_path(movies_path, name, year):
-    """ Return a movie path given its title and year. """
+    """Return a movie path given its title and year."""
     return os.path.join(movies_path, "%s (%d).mp4" % (name, year))
 
 
 def get_tvshow_path(tvshows_path, name, season, episode):
-    """ Return a TV show path given its title, season, and episode. """
+    """Return a TV show path given its title, season, and episode."""
     return os.path.join(tvshows_path, name, "S%02dE%02d.mp4" % (season, episode))
 
 
 def add_library_section(server, section):
-    """ Add the specified section to our Plex instance. This tends to be a bit
-        flaky, so we retry a few times here.
+    """Add the specified section to our Plex instance. This tends to be a bit
+    flaky, so we retry a few times here.
     """
     start = time.time()
     runtime = 0
@@ -290,7 +293,7 @@ def create_section(server, section, opts):  # noqa: C901
     expected_media_type = tuple(SEARCHTYPES[t] for t in expected_media_type)
 
     def alert_callback(data):
-        """ Listen to the Plex notifier to determine when metadata scanning is complete. """
+        """Listen to the Plex notifier to determine when metadata scanning is complete."""
         global processed_media
         if data["type"] == "timeline":
             for entry in data["TimelineEntry"]:
@@ -299,25 +302,19 @@ def create_section(server, section, opts):  # noqa: C901
                     == "com.plexapp.plugins.library"
                 ):
                     # Missed mediaState means that media was processed (analyzed & thumbnailed)
-                    if (
-                        "mediaState" not in entry
-                        and entry["type"] in expected_media_type
-                    ):
+                    if "mediaState" not in entry and entry["type"] in expected_media_type:
                         # state=5 means record processed, applicable only when metadata source was set
                         if entry["state"] == 5:
                             cnt = 1
                             if entry["type"] == SEARCHTYPES["show"]:
-                                show = server.library.sectionByID(
-                                    entry["sectionID"]
-                                ).get(entry["title"])
+                                show = server.library.sectionByID(entry["sectionID"]).get(
+                                    entry["title"]
+                                )
                                 cnt = show.leafCount
                             bar.update(cnt)
                             processed_media += cnt
                         # state=1 means record processed, when no metadata source was set
-                        elif (
-                            entry["state"] == 1
-                            and entry["type"] == SEARCHTYPES["photo"]
-                        ):
+                        elif entry["state"] == 1 and entry["type"] == SEARCHTYPES["photo"]:
                             bar.update()
                             processed_media += 1
 
@@ -357,12 +354,8 @@ if __name__ == "__main__":  # noqa: C901
         action="store_true",
     )
     # Test environment arguments
-    parser.add_argument(
-        "--no-docker", help="Use docker", default=False, action="store_true"
-    )
-    parser.add_argument(
-        "--timezone", help="Timezone to set inside plex", default="UTC"
-    )  # noqa
+    parser.add_argument("--no-docker", help="Use docker", default=False, action="store_true")
+    parser.add_argument("--timezone", help="Timezone to set inside plex", default="UTC")  # noqa
     parser.add_argument(
         "--language", help="Language to set inside plex", default="en_US.UTF-8"
     )  # noqa
@@ -463,9 +456,7 @@ if __name__ == "__main__":  # noqa: C901
         docker_cmd = [c % arg_bindings for c in DOCKER_CMD]
         exit_code = call(docker_cmd)
         if exit_code != 0:
-            raise SystemExit(
-                "Error %s while starting the Plex docker container" % exit_code
-            )
+            raise SystemExit("Error %s while starting the Plex docker container" % exit_code)
 
     # Wait for the Plex container to start
     print("Waiting for the Plex to start..")
@@ -489,9 +480,7 @@ if __name__ == "__main__":  # noqa: C901
         runtime = time.time() - start
 
     if not server:
-        raise SystemExit(
-            "Server didn't appear in your account after %ss" % opts.bootstrap_timeout
-        )
+        raise SystemExit("Server didn't appear in your account after %ss" % opts.bootstrap_timeout)
 
     print("Plex container started after %ss" % int(runtime))
     print("Plex server version %s" % server.version)

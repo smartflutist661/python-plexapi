@@ -9,8 +9,13 @@ import os
 import re
 import shutil
 from pathlib import Path
-from typing import Any, List, Optional, Tuple, Union
-
+from typing import (
+    Any,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 BASE_DIR_PATH = Path(__file__).parents[1].absolute()
 STUB_VIDEO_PATH = BASE_DIR_PATH / "tests" / "data" / "video_stub.mp4"
@@ -18,15 +23,15 @@ STUB_VIDEO_PATH = BASE_DIR_PATH / "tests" / "data" / "video_stub.mp4"
 
 class DummyFiles:
     def __init__(self, **kwargs: Any):
-        self.dummy_file: Path = kwargs['file']
-        self.root_folder: Path = kwargs['root']
-        self.title: str = kwargs['title']
-        self.year: int = kwargs['year']
-        self.tmdb: Optional[int] = kwargs['tmdb']
-        self.tvdb: Optional[int] = kwargs['tvdb']
-        self.imdb: Optional[str] = kwargs['imdb']
-        self.dry_run: bool = kwargs['dry_run']
-        self.clean: bool = kwargs['clean']
+        self.dummy_file: Path = kwargs["file"]
+        self.root_folder: Path = kwargs["root"]
+        self.title: str = kwargs["title"]
+        self.year: int = kwargs["year"]
+        self.tmdb: Optional[int] = kwargs["tmdb"]
+        self.tvdb: Optional[int] = kwargs["tvdb"]
+        self.imdb: Optional[str] = kwargs["imdb"]
+        self.dry_run: bool = kwargs["dry_run"]
+        self.clean: bool = kwargs["clean"]
 
     @property
     def external_id(self) -> Optional[str]:
@@ -53,7 +58,9 @@ class DummyFiles:
             # No check for illegal characters in folder name
             folder.mkdir(parents=True, exist_ok=True)
 
-    def create_files(self, files: List[Path], parent: Optional[Path] = None, level: int = 1) -> None:
+    def create_files(
+        self, files: List[Path], parent: Optional[Path] = None, level: int = 1
+    ) -> None:
         """Create a list of files with the given paths."""
         for file in files:
             print(f"{'│  ' * level}├─ {file}")
@@ -71,8 +78,8 @@ class DummyFiles:
 class DummyMovie(DummyFiles):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-        versions = kwargs['versions'] or [["", 1]]
-        self.edition: Optional[str] = kwargs['edition']
+        versions = kwargs["versions"] or [["", 1]]
+        self.edition: Optional[str] = kwargs["edition"]
         self.versions: List[str] = [v[0] for v in versions]
         self.parts: List[int] = [v[1] for v in versions]
         self.movie_folder: Path = self.create_movie_folder()
@@ -127,8 +134,8 @@ class DummyMovie(DummyFiles):
 class DummyShow(DummyFiles):
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
-        self.seasons: List[List[int]] = kwargs['seasons']
-        self.episodes: List[List[Union[int, List[int], Tuple[int, int]]]] = kwargs['episodes']
+        self.seasons: List[List[int]] = kwargs["seasons"]
+        self.episodes: List[List[Union[int, List[int], Tuple[int, int]]]] = kwargs["episodes"]
         self.show_folder: Path = self.create_show_folder()
         self.create_episode_files()
 
@@ -243,7 +250,7 @@ if __name__ == "__main__":  # noqa: C901
         "--root",
         help="Root media folder to create the dummy folders and files",
         type=validate_folder_path,
-        required=True
+        required=True,
     )
     parser.add_argument(
         "-t",
@@ -260,11 +267,7 @@ if __name__ == "__main__":  # noqa: C901
     )
 
     movie_group = parser.add_argument_group("Movie Options")
-    movie_group.add_argument(
-        "-ed",
-        "--edition",
-        help="Edition title"
-    )
+    movie_group.add_argument("-ed", "--edition", help="Edition title")
     movie_group.add_argument(
         "-vs",
         "--versions",
@@ -338,6 +341,10 @@ if __name__ == "__main__":  # noqa: C901
             parser.error("Both --seasons and --episodes are required for TV shows")
         if len(opts.seasons) != len(opts.episodes):
             parser.error("Number of seasons and episodes arguments must match")
-        if any(not isinstance(season, int) for season_groups in opts.seasons for season in season_groups):
+        if any(
+            not isinstance(season, int)
+            for season_groups in opts.seasons
+            for season in season_groups
+        ):
             parser.error("Seasons must be a list of integers or integer ranges")
         DummyShow(**vars(opts))

@@ -1,17 +1,24 @@
 import re
 import time
+from datetime import datetime
 from urllib.parse import quote_plus
 
 import pytest
-from datetime import datetime
 from PIL import Image
-from plexapi.exceptions import BadRequest, NotFound
-from plexapi.server import PlexServer
-from plexapi.utils import download
 from requests import Session
 
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
+from plexapi.server import PlexServer
+from plexapi.utils import download
+
 from . import conftest as utils
-from .payloads import SERVER_RESOURCES, SERVER_TRANSCODE_SESSIONS
+from .payloads import (
+    SERVER_RESOURCES,
+    SERVER_TRANSCODE_SESSIONS,
+)
 
 
 def test_server_attr(plex, account):
@@ -65,19 +72,26 @@ def test_server_transcodeImage(tmpdir, plex, movie):
 
     original_url = movie.thumbUrl
     resize_jpeg_url = plex.transcodeImage(original_url, height, width)
-    no_minSize_png_url = plex.transcodeImage(original_url, height, width, minSize=False, imageFormat="png")
+    no_minSize_png_url = plex.transcodeImage(
+        original_url, height, width, minSize=False, imageFormat="png"
+    )
     grayscale_url = plex.transcodeImage(original_url, height, width, saturation=0)
-    opacity_background_url = plex.transcodeImage(original_url, height, width, opacity=0, background=background, blur=100)
+    opacity_background_url = plex.transcodeImage(
+        original_url, height, width, opacity=0, background=background, blur=100
+    )
     blend_url = plex.transcodeImage(original_url, height, width, blendColor=blend, blur=1000)
     online_no_upscale_url = plex.transcodeImage(
         "https://raw.githubusercontent.com/pushingkarmaorg/python-plexapi/master/tests/data/cute_cat.jpg",
         1000,
         1000,
-        upscale=False
+        upscale=False,
     )
 
     original_img = download(
-        original_url, plex._token, savepath=str(tmpdir), filename="original_img",
+        original_url,
+        plex._token,
+        savepath=str(tmpdir),
+        filename="original_img",
     )
     resized_jpeg_img = download(
         resize_jpeg_url, plex._token, savepath=str(tmpdir), filename="resized_jpeg_img"
@@ -89,11 +103,12 @@ def test_server_transcodeImage(tmpdir, plex, movie):
         grayscale_url, plex._token, savepath=str(tmpdir), filename="grayscale_img"
     )
     opacity_background_img = download(
-        opacity_background_url, plex._token, savepath=str(tmpdir), filename="opacity_background_img"
+        opacity_background_url,
+        plex._token,
+        savepath=str(tmpdir),
+        filename="opacity_background_img",
     )
-    blend_img = download(
-        blend_url, plex._token, savepath=str(tmpdir), filename="blend_img"
-    )
+    blend_img = download(blend_url, plex._token, savepath=str(tmpdir), filename="blend_img")
     online_no_upscale_img = download(
         online_no_upscale_url, plex._token, savepath=str(tmpdir), filename="online_no_upscale_img"
     )
@@ -139,7 +154,8 @@ def test_server_search(plex, movie):
         hub_tag.key,
         prefix=hub_tag.librarySectionKey,
         contains=f"{hub_tag.librarySectionID}/all",
-        suffix=hub_tag.filter)
+        suffix=hub_tag.filter,
+    )
     assert utils.is_int(hub_tag.librarySectionID)
     assert utils.is_metadata(hub_tag.librarySectionKey, prefix="/library/sections")
     assert hub_tag.librarySectionTitle == "Movies"
@@ -184,8 +200,8 @@ def test_server_playlists(plex, show):
     try:
         playlists = plex.playlists()
         assert len(playlists) == count + 1
-        assert playlist in plex.playlists(playlistType='video')
-        assert playlist not in plex.playlists(playlistType='audio')
+        assert playlist in plex.playlists(playlistType="video")
+        assert playlist not in plex.playlists(playlistType="audio")
     finally:
         playlist.delete()
 
@@ -204,9 +220,7 @@ def test_server_Server_session(account):
             self.plexapi_session_test = True
 
     # Test Code
-    plex = PlexServer(
-        utils.SERVER_BASEURL, account.authenticationToken, session=MySession()
-    )
+    plex = PlexServer(utils.SERVER_BASEURL, account.authenticationToken, session=MySession())
     assert hasattr(plex._session, "plexapi_session_test")
 
 
@@ -257,7 +271,7 @@ def test_server_isLatest(plex, mocker):
 
 def test_server_installUpdate(plex, mocker):
     m = mocker.MagicMock(release="aa")
-    with utils.patch('plexapi.server.PlexServer.checkForUpdate', return_value=m):
+    with utils.patch("plexapi.server.PlexServer.checkForUpdate", return_value=m):
         with utils.callable_http_patch():
             plex.installUpdate()
 
@@ -272,7 +286,7 @@ def test_server_checkForUpdate(plex, mocker):
             self.downloadURL = "http://path-to-update"
             self.state = "downloaded"
 
-    with utils.patch('plexapi.server.PlexServer.checkForUpdate', return_value=R()):
+    with utils.patch("plexapi.server.PlexServer.checkForUpdate", return_value=R()):
         rel = plex.checkForUpdate(force=False, download=True)
         assert rel.download_key == "plex.tv/release/1337"
         assert rel.version == "1337"
@@ -288,11 +302,13 @@ def test_server_clients(plex):
     client = plex.clients()[0]
     assert client._baseurl == utils.CLIENT_BASEURL
     assert client._server._baseurl == utils.SERVER_BASEURL
-    assert client.protocol == 'plex'
+    assert client.protocol == "plex"
     assert int(client.protocolVersion) in range(4)
     assert isinstance(client.machineIdentifier, str)
-    assert client.deviceClass in ['phone', 'tablet', 'stb', 'tv', 'pc']
-    assert set(client.protocolCapabilities).issubset({'timeline', 'playback', 'navigation', 'mirror', 'playqueues'})
+    assert client.deviceClass in ["phone", "tablet", "stb", "tv", "pc"]
+    assert set(client.protocolCapabilities).issubset(
+        {"timeline", "playback", "navigation", "mirror", "playqueues"}
+    )
 
 
 @pytest.mark.authenticated
@@ -327,22 +343,18 @@ def test_server_account(plex):
     # Below check keeps failing.. it should go away.
     # else: assert sorted(account.subscriptionFeatures) == ['adaptive_bitrate',
     #     'download_certificates', 'federated-auth', 'news']
-    assert (
-        account.subscriptionState == "Active"
-        if account.subscriptionActive
-        else "Unknown"
-    )
+    assert account.subscriptionState == "Active" if account.subscriptionActive else "Unknown"
     assert re.match(utils.REGEX_EMAIL, account.username)
 
 
 @pytest.mark.authenticated
 def test_server_claim_unclaim(plex, account):
     server_account = plex.account()
-    assert server_account.signInState == 'ok'
+    assert server_account.signInState == "ok"
     result = plex.unclaim()
-    assert result.signInState == 'none'
+    assert result.signInState == "none"
     result = plex.claim(account)
-    assert result.signInState == 'ok'
+    assert result.signInState == "ok"
 
 
 def test_server_downloadLogs(tmpdir, plex):
@@ -365,7 +377,7 @@ def test_server_browse(plex, movies):
     assert len(paths)
     # browse the path of the movie library without files
     paths = plex.browse(movies_path, includeFiles=False)
-    assert not len([f for f in paths if f.TAG == 'File'])
+    assert not len([f for f in paths if f.TAG == "File"])
     # walk the path of the movie library
     for path, paths, files in plex.walk(movies_path):
         assert path.startswith(movies_path)
@@ -461,13 +473,8 @@ def test_server_dashboard_bandwidth(account_plexpass, plex):
 @pytest.mark.authenticated
 def test_server_dashboard_bandwidth_filters(account_plexpass, plex):
     at = datetime(2021, 1, 1)
-    filters = {
-        'at>': at,
-        'bytes>': 1,
-        'lan': True,
-        'accountID': 1
-    }
-    bandwidthData = plex.bandwidth(timespan='hours', **filters)
+    filters = {"at>": at, "bytes>": 1, "lan": True, "accountID": 1}
+    bandwidthData = plex.bandwidth(timespan="hours", **filters)
     assert len(bandwidthData)
     bandwidth = bandwidthData[0]
     assert bandwidth.accountID == 1
@@ -476,12 +483,12 @@ def test_server_dashboard_bandwidth_filters(account_plexpass, plex):
     assert bandwidth.lan is True
     assert bandwidth.timespan == 4
     with pytest.raises(BadRequest):
-        plex.bandwidth(timespan='n/a')
+        plex.bandwidth(timespan="n/a")
     with pytest.raises(BadRequest):
-        filters = {'n/a': None}
+        filters = {"n/a": None}
         plex.bandwidth(**filters)
     with pytest.raises(BadRequest):
-        filters = {'at': 123456}
+        filters = {"at": 123456}
         plex.bandwidth(**filters)
 
 
@@ -540,33 +547,33 @@ def test_server_transcode_sessions(plex, requests_mock):
 
 def test_server_PlexWebURL(plex):
     url = plex.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert quote_plus('/hubs') in url
-    assert 'pageType=hub' in url
+    assert quote_plus("/hubs") in url
+    assert "pageType=hub" in url
     # Test a different base
-    base = 'https://doesnotexist.com/plex'
+    base = "https://doesnotexist.com/plex"
     url = plex.getWebURL(base=base)
     assert url.startswith(base)
 
 
 def test_server_PlexWebURL_playlists(plex):
-    tab = 'audio'
+    tab = "audio"
     url = plex.getWebURL(playlistTab=tab)
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'source=playlists' in url
-    assert f'pivot=playlists.{tab}' in url
+    assert "source=playlists" in url
+    assert f"pivot=playlists.{tab}" in url
 
 
 def test_server_agents(plex):
     agents = plex.agents()
     assert agents
-    agent = next((a for a in agents if a.identifier == 'com.plexapp.agents.imdb'), None)
+    agent = next((a for a in agents if a.identifier == "com.plexapp.agents.imdb"), None)
     assert agent
     settings = agent.settings()
     assert settings
-    setting = next((s for s in settings if s.id == 'country'), None)
+    setting = next((s for s in settings if s.id == "country"), None)
     assert setting
     assert setting.enumValues is not None
 

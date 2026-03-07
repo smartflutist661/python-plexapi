@@ -2,7 +2,10 @@ from urllib.parse import quote_plus
 
 import pytest
 
-from . import test_media, test_mixins
+from . import (
+    test_media,
+    test_mixins,
+)
 
 
 def test_photo_Photoalbum(photoalbum):
@@ -44,11 +47,11 @@ def test_photo_Photoalbum_mixins_fields(photoalbum):
 
 def test_photo_Photoalbum_PlexWebURL(plex, photoalbum):
     url = photoalbum.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(photoalbum.key) in url
-    assert 'legacy=1' in url
+    assert "legacy=1" in url
 
 
 def test_photo_Photo_mixins_rating(photo):
@@ -75,11 +78,11 @@ def test_photo_Photo_media_tags(photo):
 
 def test_photo_Photo_PlexWebURL(plex, photo):
     url = photo.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(photo.parentKey) in url
-    assert 'legacy=1' in url
+    assert "legacy=1" in url
 
 
 def test_photo_Photoalbum_download(monkeydownload, tmpdir, photoalbum):

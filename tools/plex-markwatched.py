@@ -13,44 +13,46 @@ should be all set.
 Example Crontab:
 */5 * * * * /home/atodd/plex-markwatched.py >> /home/atodd/plex-markwatched.log 2>&1
 """
+
 from datetime import datetime
+
 from plexapi.server import PlexServer
 
 
 def _has_markwatched_tag(item):
-    collections = item.show().collections if item.type == 'episode' else item.collections
+    collections = item.show().collections if item.type == "episode" else item.collections
     tags = [c.tag.lower() for c in collections]
-    return 'markwatched' in tags
+    return "markwatched" in tags
 
 
 def _get_title(item):
-    if item.type == 'episode':
-        return '{title} {episode}'.format(title=item.grandparentTitle, episode=item.seasonEpisode)
+    if item.type == "episode":
+        return "{title} {episode}".format(title=item.grandparentTitle, episode=item.seasonEpisode)
     return item.title
 
 
 def _iter_items(search):
     for item in search:
-        if item.type in ['show']:
+        if item.type in ["show"]:
             for episode in item.episodes():
                 yield episode
             break
         yield item
 
 
-if __name__ == '__main__':
-    datestr = lambda: datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # noqa
-    print(f'{datestr()} Starting plex-markwatched script..')
+if __name__ == "__main__":
+    datestr = lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # noqa
+    print(f"{datestr()} Starting plex-markwatched script..")
     plex = PlexServer()
     for section in plex.library.sections():
-        print(f'{datestr()} Checking {section.title} for unwatched items..')
-        for item in _iter_items(section.search(collection='markwatched')):
+        print(f"{datestr()} Checking {section.title} for unwatched items..")
+        for item in _iter_items(section.search(collection="markwatched")):
             if not item.isWatched:
-                print(f'{datestr()}  Marking {_get_title(item)} watched.')
+                print(f"{datestr()}  Marking {_get_title(item)} watched.")
                 item.markWatched()
     # Check all OnDeck items
-    print(f'{datestr()} Checking OnDeck for unwatched items.')
+    print(f"{datestr()} Checking OnDeck for unwatched items.")
     for item in plex.library.onDeck():
         if not item.isWatched and _has_markwatched_tag(item):
-            print(f'{datestr()}  Marking {_get_title(item)} watched.')
+            print(f"{datestr()}  Marking {_get_title(item)} watched.")
             item.markWatched()

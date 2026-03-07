@@ -12,28 +12,34 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import copy
-from os.path import abspath, dirname, join
 import sys
+from os.path import (
+    abspath,
+    dirname,
+    join,
+)
+
 path = dirname(dirname(abspath(__file__)))
 sys.path.append(path)
-sys.path.append(join(path, 'plexapi'))
+sys.path.append(join(path, "plexapi"))
 import plexapi  # noqa: E402
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
-    'sphinx_rtd_theme',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx_rtd_theme",
 ]
 
 # -- Monkey-patch docstring to not auto-link :ivars ------------------------
 from sphinx.domains.python import PythonDomain  # noqa: E402
-print('Monkey-patching PythonDomain.resolve_xref()')
+
+print("Monkey-patching PythonDomain.resolve_xref()")
 old_resolve_xref = copy.deepcopy(PythonDomain.resolve_xref)
 
 
 def new_resolve_xref(*args):
-    if '.' not in args[5]:  # target
+    if "." not in args[5]:  # target
         return None
     return old_resolve_xref(*args)
 
@@ -53,11 +59,11 @@ napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_use_keyword = True
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
 
 # -- General Configuration ------------------------------------------------
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['../']
+templates_path = ["../"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -70,12 +76,12 @@ templates_path = ['../']
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'Python PlexAPI'
-copyright = '2023, M.Shepanski'
-author = 'M.Shepanski'
+project = "Python PlexAPI"
+copyright = "2023, M.Shepanski"
+author = "M.Shepanski"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -89,7 +95,7 @@ version = plexapi.VERSION
 # for a list of supported languages.
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -101,7 +107,7 @@ language = 'en'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -119,7 +125,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -136,12 +142,12 @@ todo_include_todos = False
 # a list of builtin themes.
 # html_theme = 'alabaster'
 html_theme = "sphinx_rtd_theme"
-html_static_path = ['_static']
-html_context = {'css_files': ['_static/custom.css']}
+html_static_path = ["_static"]
+html_context = {"css_files": ["_static/custom.css"]}
 html_theme_options = {
-    'collapse_navigation': False,
-    'version_selector': False,
-    'language_selector': False,
+    "collapse_navigation": False,
+    "version_selector": False,
+    "language_selector": False,
     # 'navigation_depth': 3,
 }
 
@@ -238,20 +244,17 @@ html_theme_options = {
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'PythonPlexAPIdoc'
+htmlhelp_basename = "PythonPlexAPIdoc"
 
 
 # -- Options for LaTeX output ---------------------------------------------
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
-
     # Latex figure (float) alignment
     # 'figure_align': 'htbp',
 }
@@ -260,8 +263,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PythonPlexAPI.tex', 'Python PlexAPI Documentation',
-     'M.Shepanski', 'manual'),
+    (master_doc, "PythonPlexAPI.tex", "Python PlexAPI Documentation", "M.Shepanski", "manual"),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -288,10 +290,7 @@ latex_documents = [
 # -- Options for manual page output ---------------------------------------
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'pythonplexapi', 'Python PlexAPI Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "pythonplexapi", "Python PlexAPI Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -303,9 +302,15 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PythonPlexAPI', 'Python PlexAPI Documentation',
-     author, 'PythonPlexAPI', 'One line description of project.',
-     'Miscellaneous'),
+    (
+        master_doc,
+        "PythonPlexAPI",
+        "Python PlexAPI Documentation",
+        author,
+        "PythonPlexAPI",
+        "One line description of project.",
+        "Miscellaneous",
+    ),
 ]
 
 # Documents to append as an appendix to all manuals.
@@ -320,5 +325,5 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 # texinfo_no_detailmenu = False
 
-suppress_warnings = ['image.nonlocal_uri']
-exclude_patterns = ['toc.rst']
+suppress_warnings = ["image.nonlocal_uri"]
+exclude_patterns = ["toc.rst"]

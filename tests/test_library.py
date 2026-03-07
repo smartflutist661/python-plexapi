@@ -1,10 +1,17 @@
 from collections import namedtuple
-from datetime import datetime, timedelta
+from datetime import (
+    datetime,
+    timedelta,
+)
 from urllib.parse import quote_plus
 
 import pytest
+
 import plexapi.base
-from plexapi.exceptions import BadRequest, NotFound
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
 
 from . import conftest as utils
 
@@ -65,9 +72,9 @@ def test_library_MovieSection_getGuid(movies, movie):
     result = movies.getGuid(guid=movie.guids[0].id)
     assert result == movie
     with pytest.raises(NotFound):
-        movies.getGuid(guid='plex://movie/abcdefg')
+        movies.getGuid(guid="plex://movie/abcdefg")
     with pytest.raises(NotFound):
-        movies.getGuid(guid='imdb://tt00000000')
+        movies.getGuid(guid="imdb://tt00000000")
 
 
 def test_library_section_movies_all(movies):
@@ -76,7 +83,7 @@ def test_library_section_movies_all(movies):
 
 
 def test_library_section_movies_all_guids(movies):
-    plexapi.base.USER_DONT_RELOAD_FOR_KEYS.add('guids')
+    plexapi.base.USER_DONT_RELOAD_FOR_KEYS.add("guids")
     try:
         results = movies.all(includeGuids=False)
         assert results[0].guids == []
@@ -85,7 +92,7 @@ def test_library_section_movies_all_guids(movies):
         movie = movies.get("Sita Sings the Blues")
         assert movie.guids
     finally:
-        plexapi.base.USER_DONT_RELOAD_FOR_KEYS.remove('guids')
+        plexapi.base.USER_DONT_RELOAD_FOR_KEYS.remove("guids")
 
 
 def test_library_section_totalDuration(tvshows):
@@ -150,7 +157,7 @@ def test_library_add_edit_delete(plex, movies, photos):
         agent="com.plexapp.agents.none",
         scanner="Plex Video Files Scanner",
         language="xn",
-        location=[movie_location, photo_location]
+        location=[movie_location, photo_location],
     )
     section = plex.library.section(section_name)
     assert section.title == section_name
@@ -163,7 +170,7 @@ def test_library_add_edit_delete(plex, movies, photos):
             agent="com.plexapp.agents.none",
             scanner="Plex Video Files Scanner",
             language="xn",
-            location=[movie_location, photo_location[:-1]]
+            location=[movie_location, photo_location[:-1]],
         )
     # Create library with no path
     with pytest.raises(BadRequest):
@@ -190,11 +197,11 @@ def test_library_add_edit_delete(plex, movies, photos):
     section.addLocations(photo_location)
     section.reload()
     assert len(section.locations) == 2
-    section.edit(**{'location': movie_location})
+    section.edit(**{"location": movie_location})
     section.reload()
     assert len(section.locations) == 1
     with pytest.raises(BadRequest):
-        section.edit(**{'location': movie_location[:-1]})
+        section.edit(**{"location": movie_location[:-1]})
     # Attempt to remove all locations
     with pytest.raises(BadRequest):
         section.removeLocations(section.locations)
@@ -206,10 +213,12 @@ def test_library_add_advanced_settings(plex, movies):
     # Create Other Videos library = No external metadata scanning
     section_name = "plexapi_test_advanced_section"
     movie_location = movies.locations[0]
-    advanced_settings = {"enableCinemaTrailers": 0,
-                         "enableBIFGeneration": 0,
-                         "augmentWithProviderContent": 0,
-                         "enableCreditsMarkerGeneration": 0}
+    advanced_settings = {
+        "enableCinemaTrailers": 0,
+        "enableBIFGeneration": 0,
+        "augmentWithProviderContent": 0,
+        "enableCreditsMarkerGeneration": 0,
+    }
     plex.library.add(
         name=section_name,
         type="movie",
@@ -217,7 +226,7 @@ def test_library_add_advanced_settings(plex, movies):
         scanner="Plex Video Files Scanner",
         language="xn",
         location=[movie_location],
-        **advanced_settings
+        **advanced_settings,
     )
     section = plex.library.section(section_name)
     assert section.title == section_name
@@ -268,10 +277,10 @@ def test_library_Library_search(plex):
 
 
 def test_library_Library_tags(plex):
-    tags = plex.library.tags('genre')
+    tags = plex.library.tags("genre")
     assert len(tags)
     with pytest.raises(NotFound):
-        plex.library.tags('unknown')
+        plex.library.tags("unknown")
 
 
 def test_library_MovieSection_update(movies):
@@ -368,14 +377,14 @@ def test_library_MovieSection_managedHubs(movies):
 
 
 def test_library_MovieSection_PlexWebURL(plex, movies):
-    tab = 'library'
+    tab = "library"
     url = movies.getWebURL(tab=tab)
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert f'source={movies.key}' in url
-    assert f'pivot={tab}' in url
+    assert f"source={movies.key}" in url
+    assert f"pivot={tab}" in url
     # Test a different base
-    base = 'https://doesnotexist.com/plex'
+    base = "https://doesnotexist.com/plex"
     url = movies.getWebURL(base=base)
     assert url.startswith(base)
 
@@ -385,9 +394,9 @@ def test_library_MovieSection_PlexWebURL_hub(plex, movies):
     hub = next(iter(hubs), None)
     assert hub is not None
     url = hub.section().getWebURL(key=hub.key)
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert f'source={movies.key}' in url
+    assert f"source={movies.key}" in url
     assert quote_plus(hub.key) in url
 
 
@@ -516,15 +525,15 @@ def test_library_editAdvanced_default(movies):
 
 def test_library_lockUnlockAllFields(movies):
     for movie in movies.all():
-        assert 'thumb' not in [f.name for f in movie.fields]
+        assert "thumb" not in [f.name for f in movie.fields]
 
-    movies.lockAllField('thumb')
+    movies.lockAllField("thumb")
     for movie in movies.all():
-        assert 'thumb' in [f.name for f in movie.fields]
+        assert "thumb" in [f.name for f in movie.fields]
 
-    movies.unlockAllField('thumb')
+    movies.unlockAllField("thumb")
     for movie in movies.all():
-        assert 'thumb' not in [f.name for f in movie.fields]
+        assert "thumb" not in [f.name for f in movie.fields]
 
 
 def test_search_with_weird_a(plex, tvshows):
@@ -543,9 +552,7 @@ def test_crazy_search(plex, movies, movie):
     assert movie in movies.search(
         director=movie.directors[0]
     ), "Unable to search movie by director."
-    assert movie in movies.search(
-        year=["2006", "2007"]
-    ), "Unable to search movie by year."
+    assert movie in movies.search(year=["2006", "2007"]), "Unable to search movie by year."
     assert movie not in movies.search(year=2007), "Unable to filter movie by year."
     assert movie in movies.search(actor=movie.actors[0].tag)
     assert len(movies.search(container_start=2, maxresults=1)) == 1
@@ -588,8 +595,10 @@ def test_library_MovieSection_search(movies, movie, collection):
 
 
 def test_library_MovieSection_search_FilterChoice(movies, collection):
-    filterChoice = next(c for c in movies.listFilterChoices("collection") if c.title == collection.title)
-    results = movies.search(filters={'collection': filterChoice})
+    filterChoice = next(
+        c for c in movies.listFilterChoices("collection") if c.title == collection.title
+    )
+    results = movies.search(filters={"collection": filterChoice})
     movie = collection.items()[0]
     assert movie in results
 
@@ -599,15 +608,10 @@ def test_library_MovieSection_search_FilterChoice(movies, collection):
 
 def test_library_MovieSection_advancedSearch(movies, movie):
     advancedFilters = {
-        'and': [
-            {
-                'or': [
-                    {'title': 'elephant'},
-                    {'title': 'bunny'}
-                ]
-            },
-            {'year>>': 1990},
-            {'unwatched': True}
+        "and": [
+            {"or": [{"title": "elephant"}, {"title": "bunny"}]},
+            {"year>>": 1990},
+            {"unwatched": True},
         ]
     }
     results = movies.search(filters=advancedFilters)
@@ -736,8 +740,13 @@ def test_library_ShowSection_search_sort(tvshows):
     sortedResults = sorted(
         results,
         key=lambda e: (
-            e.show().titleSort, e.season().index, e.index,
-            e.originallyAvailableAt, e.titleSort, e.ratingKey)
+            e.show().titleSort,
+            e.season().index,
+            e.index,
+            e.originallyAvailableAt,
+            e.titleSort,
+            e.ratingKey,
+        ),
     )
     assert results == sortedResults
 
@@ -750,11 +759,15 @@ def test_library_ShowSection_search_sort(tvshows):
         sorted(
             results,
             key=lambda e: (
-                e.season().index, e.index,
-                e.originallyAvailableAt, e.titleSort, e.ratingKey)
+                e.season().index,
+                e.index,
+                e.originallyAvailableAt,
+                e.titleSort,
+                e.ratingKey,
+            ),
         ),
         key=lambda e: e.show().titleSort,
-        reverse=True
+        reverse=True,
     )
     assert results == sortedResults
 
@@ -766,13 +779,19 @@ def test_library_ShowSection_search_sort(tvshows):
 
 def test_library_MusicSection_search_sort(music):
     # Test predefined Plex multi-sort
-    albumArtistAsc = "artist.titleSort,album.titleSort,album.index,album.id,album.originallyAvailableAt"
+    albumArtistAsc = (
+        "artist.titleSort,album.titleSort,album.index,album.id,album.originallyAvailableAt"
+    )
     results = music.search(sort=albumArtistAsc, libtype="album")
     sortedResults = sorted(
         results,
         key=lambda a: (
-            a.artist().titleSort, a.titleSort, a.index, a.ratingKey, a.originallyAvailableAt
-        )
+            a.artist().titleSort,
+            a.titleSort,
+            a.index,
+            a.ratingKey,
+            a.originallyAvailableAt,
+        ),
     )
     assert results == sortedResults
 
@@ -784,9 +803,13 @@ def test_library_MusicSection_search_sort(music):
     sortedResults = sorted(
         results,
         key=lambda t: (
-            t.artist().titleSort, t.album().titleSort, t.album().year,
-            t.index, t.titleSort, t.ratingKey  # Skip unknown absoluteIndex
-        )
+            t.artist().titleSort,
+            t.album().titleSort,
+            t.album().year,
+            t.index,
+            t.titleSort,
+            t.ratingKey,  # Skip unknown absoluteIndex
+        ),
     )
     assert results == sortedResults
 
@@ -803,9 +826,9 @@ def test_library_search_exceptions(movies):
     with pytest.raises(BadRequest):
         movies.search(filters=[])
     with pytest.raises(BadRequest):
-        movies.search(filters={'and': {'title': 'test'}})
+        movies.search(filters={"and": {"title": "test"}})
     with pytest.raises(BadRequest):
-        movies.search(filters={'and': [], 'title': 'test'})
+        movies.search(filters={"and": [], "title": "test"})
     with pytest.raises(NotFound):
         movies.getFilterType(libtype="show")
     with pytest.raises(NotFound):
@@ -837,16 +860,19 @@ def _test_library_search(library, obj):  # noqa: C901
             operators += [andOp]
 
         for operator in operators:
-            if (
-                fieldAttr in {"audienceRating", "rating"} and operator.key in {"=", "!="}
-            ):
+            if fieldAttr in {"audienceRating", "rating"} and operator.key in {"=", "!="}:
                 continue
 
             value = getattr(obj, fieldAttr, None)
 
             if field.type == "boolean" and value is None:
                 value = fieldAttr.startswith("unwatched")
-            if field.type == "tag" and isinstance(value, list) and value and operator.title != "and":
+            if (
+                field.type == "tag"
+                and isinstance(value, list)
+                and value
+                and operator.title != "and"
+            ):
                 value = value[0]
             elif value is None:
                 continue
@@ -888,10 +914,16 @@ def _do_test_library_search(library, obj, field, operator, searchValue):
     searchFilter = {field.key + operator.key[:-1]: searchValue}
     results = library.search(libtype=obj.type, filters=searchFilter)
 
-    if operator.key.startswith("!") or operator.key.startswith(">>") and (searchValue == 1 or searchValue == "0s"):
+    if (
+        operator.key.startswith("!")
+        or operator.key.startswith(">>")
+        and (searchValue == 1 or searchValue == "0s")
+    ):
         assert obj not in results
     else:
-        assert obj in results, f"Unable to search {obj.type} by {field.key} using {operator.key} and value {searchValue}."
+        assert (
+            obj in results
+        ), f"Unable to search {obj.type} by {field.key} using {operator.key} and value {searchValue}."
 
 
 def test_library_common(movies):
@@ -970,4 +1002,6 @@ def test_library_section_cache_invalidation(movies):
     after_locations = movies.locations
     after_id = id(after_locations)
     assert before_id != after_id, "Locations should have a new object ID after a reload"
-    assert str(before_locations) == str(after_locations), "Locations should not have changed content after a library reload"
+    assert str(before_locations) == str(
+        after_locations
+    ), "Locations should not have changed content after a library reload"

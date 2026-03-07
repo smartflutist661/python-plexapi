@@ -1,8 +1,17 @@
 import jwt
-
 import pytest
-from plexapi.exceptions import BadRequest, NotFound, Unauthorized
-from plexapi.myplex import MyPlexAccount, MyPlexInvite, MyPlexPinLogin, MyPlexJWTLogin
+
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+    Unauthorized,
+)
+from plexapi.myplex import (
+    MyPlexAccount,
+    MyPlexInvite,
+    MyPlexJWTLogin,
+    MyPlexPinLogin,
+)
 from plexapi.utils import generateUUID
 
 from . import conftest as utils
@@ -83,9 +92,7 @@ def test_myplex_users(account):
     except IndexError:
         return pytest.skip(f"{users[0].title} shared user does not have access to any servers")
 
-    assert (
-        len(users[0].servers[0].sections()) > 0
-    ), "Couldn't info about the shared libraries"
+    assert len(users[0].servers[0].sections()) > 0, "Couldn't info about the shared libraries"
 
 
 def test_myplex_resource(account, plex):
@@ -134,26 +141,26 @@ def test_myplex_optout(account_once):
 def test_myplex_onlineMediaSources_optOut(account):
     onlineMediaSources = account.onlineMediaSources()
     for optOut in onlineMediaSources:
-        if optOut.key == 'tv.plex.provider.news':
+        if optOut.key == "tv.plex.provider.news":
             # News is no longer available
             continue
 
         optOutValue = optOut.value
         optOut.optIn()
-        assert optOut.value == 'opt_in'
+        assert optOut.value == "opt_in"
         optOut.optOut()
-        assert optOut.value == 'opt_out'
-        if optOut.key == 'tv.plex.provider.music':
+        assert optOut.value == "opt_out"
+        if optOut.key == "tv.plex.provider.music":
             with pytest.raises(BadRequest):
                 optOut.optOutManaged()
         else:
             optOut.optOutManaged()
-            assert optOut.value == 'opt_out_managed'
+            assert optOut.value == "opt_out_managed"
         # Reset original value
         optOut._updateOptOut(optOutValue)
 
     with pytest.raises(NotFound):
-        onlineMediaSources[0]._updateOptOut('unknown')
+        onlineMediaSources[0]._updateOptOut("unknown")
 
 
 @pytest.mark.xfail(reason="Missing sections in account server endpoint for some reason")
@@ -183,7 +190,7 @@ def test_myplex_inviteFriend(account, plex, mocker):
 def test_myplex_acceptInvite(account, requests_mock):
     url = MyPlexInvite.REQUESTS
     requests_mock.get(url, text=MYPLEX_INVITE)
-    invite = account.pendingInvite('testuser', includeSent=False)
+    invite = account.pendingInvite("testuser", includeSent=False)
     with utils.callable_http_patch():
         account.acceptInvite(invite)
 
@@ -191,7 +198,7 @@ def test_myplex_acceptInvite(account, requests_mock):
 def test_myplex_cancelInvite(account, requests_mock):
     url = MyPlexInvite.REQUESTED
     requests_mock.get(url, text=MYPLEX_INVITE)
-    invite = account.pendingInvite('testuser', includeReceived=False)
+    invite = account.pendingInvite("testuser", includeReceived=False)
     with utils.callable_http_patch():
         account.cancelInvite(invite)
 
@@ -234,9 +241,7 @@ def test_myplex_createExistingUser(account, plex, shared_username):
     assert shared_username not in [
         u.username for u in plex.myPlexAccount().users() if u.home is True
     ]
-    assert shared_username in [
-        u.username for u in plex.myPlexAccount().users() if u.home is False
-    ]
+    assert shared_username in [u.username for u in plex.myPlexAccount().users() if u.home is False]
 
 
 @pytest.mark.skip(reason="broken test?")
@@ -245,9 +250,7 @@ def test_myplex_createHomeUser_remove(account, plex):
     account.createHomeUser(homeuser, plex)
     assert homeuser in [u.title for u in plex.myPlexAccount().users() if u.home is True]
     account.removeHomeUser(homeuser)
-    assert homeuser not in [
-        u.title for u in plex.myPlexAccount().users() if u.home is True
-    ]
+    assert homeuser not in [u.title for u in plex.myPlexAccount().users() if u.home is True]
 
 
 def test_myplex_plexpass_attributes(account_plexpass):
@@ -291,7 +294,7 @@ def test_myplex_watchlist(account, movie, show, artist):
     assert movie.onWatchlist(account) and show.onWatchlist(account)
 
     # Filter and sort watchlist
-    watchlist = account.watchlist(filter='released', sort='titleSort', libtype='movie')
+    watchlist = account.watchlist(filter="released", sort="titleSort", libtype="movie")
     guids = [i.guid for i in watchlist]
     assert movie.guid in guids and show.guid not in guids
 
@@ -372,26 +375,24 @@ def test_myplex_ping(account):
 def test_myplex_jwt_login(account, tmp_path, monkeypatch):
     # Create a new MyPlexDevice for JWT tests
     clientIdentifier = generateUUID()
-    headers = {'X-Plex-Client-Identifier': clientIdentifier}
+    headers = {"X-Plex-Client-Identifier": clientIdentifier}
     pinlogin = MyPlexPinLogin(headers=headers)
     pinlogin.run()
     account.link(pinlogin.pin)
     pinlogin.waitForLogin()
 
-    privkey = tmp_path / 'private.key'
-    pubkey = tmp_path / 'public.key'
+    privkey = tmp_path / "private.key"
+    pubkey = tmp_path / "public.key"
 
     jwtlogin = MyPlexJWTLogin(
-        headers=headers,
-        token=pinlogin.token,
-        scopes=['username', 'email', 'friendly_name']
+        headers=headers, token=pinlogin.token, scopes=["username", "email", "friendly_name"]
     )
     jwtlogin.generateKeypair(keyfiles=(privkey, pubkey), overwrite=True)
     with pytest.raises(FileExistsError):
         jwtlogin.generateKeypair(keyfiles=(privkey, pubkey))
     jwtlogin.registerDevice()
     jwtToken = jwtlogin.refreshJWT()
-    assert jwtlogin.decodedJWT['user']['username'] == account.username
+    assert jwtlogin.decodedJWT["user"]["username"] == account.username
     new_account = MyPlexAccount(token=jwtToken)
     assert new_account.username == account.username
 
@@ -399,7 +400,7 @@ def test_myplex_jwt_login(account, tmp_path, monkeypatch):
         headers=headers,
         jwtToken=jwtToken,
         keypair=(privkey, pubkey),
-        scopes=['username', 'email', 'friendly_name']
+        scopes=["username", "email", "friendly_name"],
     )
     assert jwtlogin.verifyJWT()
     newjwtToken = jwtlogin.refreshJWT()
@@ -409,7 +410,9 @@ def test_myplex_jwt_login(account, tmp_path, monkeypatch):
 
     plexPublicJWKs = jwtlogin._getPlexPublicJWK()
     invalidJWK = jwtlogin._publicJWK._jwk_data.copy()
-    monkeypatch.setattr(MyPlexJWTLogin, "_getPlexPublicJWK", lambda self: plexPublicJWKs + [invalidJWK])
+    monkeypatch.setattr(
+        MyPlexJWTLogin, "_getPlexPublicJWK", lambda self: plexPublicJWKs + [invalidJWK]
+    )
     assert jwtlogin.decodePlexJWT()
 
     monkeypatch.setattr(MyPlexJWTLogin, "_getPlexPublicJWK", lambda self: [invalidJWK])

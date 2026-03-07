@@ -2,7 +2,9 @@
 """
 Plex-GetToken is a simple method to retrieve a Plex account token.
 """
+
 from getpass import getpass
+
 from plexapi.exceptions import TwoFactorRequired
 from plexapi.myplex import MyPlexAccount
 

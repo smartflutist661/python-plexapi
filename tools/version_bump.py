@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Helper script to bump the current version."""
+
 import argparse
 import re
 import subprocess
@@ -60,9 +61,7 @@ def main():
         help="The type of version bump to perform",
         choices=SUPPORTED_BUMP_TYPES,
     )
-    parser.add_argument(
-        "--commit", action="store_true", help="Create a version bump commit"
-    )
+    parser.add_argument("--commit", action="store_true", help="Create a version bump commit")
     parser.add_argument(
         "--tag", action="store_true", help="Tag the commit with the release version"
     )

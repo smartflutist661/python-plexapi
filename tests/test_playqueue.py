@@ -1,9 +1,12 @@
-from plexapi.exceptions import BadRequest
-from plexapi.playqueue import PlayQueue
 import pytest
 
+from plexapi.exceptions import BadRequest
+from plexapi.playqueue import PlayQueue
 
-@pytest.mark.xfail(reason="Plex regression `playQueueTotalCount` value incorrect when item removed from PlayQueue")
+
+@pytest.mark.xfail(
+    reason="Plex regression `playQueueTotalCount` value incorrect when item removed from PlayQueue"
+)
 def test_create_playqueue(plex, show):
     # create the playlist
     episodes = show.episodes()
@@ -11,67 +14,43 @@ def test_create_playqueue(plex, show):
     assert len(pq) == 3, "PlayQueue does not contain 3 items."
     assert pq.playQueueLastAddedItemID is None
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert (
-        pq.items[0].ratingKey == episodes[0].ratingKey
-    ), "Items not in proper order [0a]."
-    assert (
-        pq.items[1].ratingKey == episodes[1].ratingKey
-    ), "Items not in proper order [1a]."
-    assert (
-        pq.items[2].ratingKey == episodes[2].ratingKey
-    ), "Items not in proper order [2a]."
+    assert pq.items[0].ratingKey == episodes[0].ratingKey, "Items not in proper order [0a]."
+    assert pq.items[1].ratingKey == episodes[1].ratingKey, "Items not in proper order [1a]."
+    assert pq.items[2].ratingKey == episodes[2].ratingKey, "Items not in proper order [2a]."
 
     # Test move items around (b)
     pq.moveItem(pq.items[1])
     assert pq.playQueueLastAddedItemID is None
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert (
-        pq.items[0].ratingKey == episodes[1].ratingKey
-    ), "Items not in proper order [0b]."
-    assert (
-        pq.items[1].ratingKey == episodes[0].ratingKey
-    ), "Items not in proper order [1b]."
-    assert (
-        pq.items[2].ratingKey == episodes[2].ratingKey
-    ), "Items not in proper order [2b]."
+    assert pq.items[0].ratingKey == episodes[1].ratingKey, "Items not in proper order [0b]."
+    assert pq.items[1].ratingKey == episodes[0].ratingKey, "Items not in proper order [1b]."
+    assert pq.items[2].ratingKey == episodes[2].ratingKey, "Items not in proper order [2b]."
 
     # Test move items around (c)
     pq.moveItem(pq.items[0], after=pq.items[1])
     assert pq.playQueueLastAddedItemID == pq.items[1].playQueueItemID
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert (
-        pq.items[0].ratingKey == episodes[0].ratingKey
-    ), "Items not in proper order [0c]."
-    assert (
-        pq.items[1].ratingKey == episodes[1].ratingKey
-    ), "Items not in proper order [1c]."
-    assert (
-        pq.items[2].ratingKey == episodes[2].ratingKey
-    ), "Items not in proper order [2c]."
+    assert pq.items[0].ratingKey == episodes[0].ratingKey, "Items not in proper order [0c]."
+    assert pq.items[1].ratingKey == episodes[1].ratingKey, "Items not in proper order [1c]."
+    assert pq.items[2].ratingKey == episodes[2].ratingKey, "Items not in proper order [2c]."
 
     # Test adding an item to Up Next section
     pq.addItem(episodes[3])
     assert pq.playQueueLastAddedItemID == pq.items[2].playQueueItemID
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert pq.items[2].ratingKey == episodes[3].ratingKey, (
-        f"Missing added item: {episodes[3]}"
-    )
+    assert pq.items[2].ratingKey == episodes[3].ratingKey, f"Missing added item: {episodes[3]}"
 
     # Test adding an item to play next
     pq.addItem(episodes[4], playNext=True)
     assert pq.playQueueLastAddedItemID == pq.items[3].playQueueItemID
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert pq.items[1].ratingKey == episodes[4].ratingKey, (
-        f"Missing added item: {episodes[4]}"
-    )
+    assert pq.items[1].ratingKey == episodes[4].ratingKey, f"Missing added item: {episodes[4]}"
 
     # Test add another item into Up Next section
     pq.addItem(episodes[5])
     assert pq.playQueueLastAddedItemID == pq.items[4].playQueueItemID
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert pq.items[4].ratingKey == episodes[5].ratingKey, (
-        f"Missing added item: {episodes[5]}"
-    )
+    assert pq.items[4].ratingKey == episodes[5].ratingKey, f"Missing added item: {episodes[5]}"
 
     # Test removing an item
     toremove = pq.items[3]
@@ -90,9 +69,7 @@ def test_create_playqueue(plex, show):
     pq.addItem(episodes[7])
     assert pq.playQueueLastAddedItemID == pq.items[1].playQueueItemID
     assert pq.playQueueSelectedMetadataItemID == episodes[0].ratingKey
-    assert pq.items[1].ratingKey == episodes[7].ratingKey, (
-        f"Missing added item: {episodes[7]}"
-    )
+    assert pq.items[1].ratingKey == episodes[7].ratingKey, f"Missing added item: {episodes[7]}"
 
 
 def test_create_playqueue_with_single_item(plex, movie):

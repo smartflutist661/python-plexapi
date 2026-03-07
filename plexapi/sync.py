@@ -22,11 +22,15 @@ you can set items to be synced to your app) you need to init some variables.
 You have to fake platform/device/model because transcoding profiles are hardcoded in Plex, and you obviously have
 to explicitly specify that your app supports `sync-target`.
 """
+
 import requests
 
 import plexapi
 from plexapi.base import PlexObject
-from plexapi.exceptions import NotFound, BadRequest
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
 
 
 class SyncItem(PlexObject):
@@ -55,97 +59,111 @@ class SyncItem(PlexObject):
         policy (:class:`~plexapi.sync.Policy`): the policy of which media to sync.
         location (str): plex-style library url with all required filters / sorting.
     """
-    TAG = 'SyncItem'
+
+    TAG = "SyncItem"
 
     def __init__(self, server, data, initpath=None, clientIdentifier=None):
         super(SyncItem, self).__init__(server, data, initpath)
         self.clientIdentifier = clientIdentifier
 
     def _loadData(self, data):
-        """ Load attribute values from Plex XML response. """
-        self.id = plexapi.utils.cast(int, data.attrib.get('id'))
-        self.version = plexapi.utils.cast(int, data.attrib.get('version'))
-        self.rootTitle = data.attrib.get('rootTitle')
-        self.title = data.attrib.get('title')
-        self.metadataType = data.attrib.get('metadataType')
-        self.contentType = data.attrib.get('contentType')
-        self.machineIdentifier = data.find('Server').get('machineIdentifier')
-        self.status = Status(**data.find('Status').attrib)
-        self.mediaSettings = MediaSettings(**data.find('MediaSettings').attrib)
-        self.policy = Policy(**data.find('Policy').attrib)
-        self.location = data.find('Location').attrib.get('uri', '')
+        """Load attribute values from Plex XML response."""
+        self.id = plexapi.utils.cast(int, data.attrib.get("id"))
+        self.version = plexapi.utils.cast(int, data.attrib.get("version"))
+        self.rootTitle = data.attrib.get("rootTitle")
+        self.title = data.attrib.get("title")
+        self.metadataType = data.attrib.get("metadataType")
+        self.contentType = data.attrib.get("contentType")
+        self.machineIdentifier = data.find("Server").get("machineIdentifier")
+        self.status = Status(**data.find("Status").attrib)
+        self.mediaSettings = MediaSettings(**data.find("MediaSettings").attrib)
+        self.policy = Policy(**data.find("Policy").attrib)
+        self.location = data.find("Location").attrib.get("uri", "")
 
     def server(self):
-        """ Returns :class:`~plexapi.myplex.MyPlexResource` with server of current item. """
-        server = [s for s in self._server.resources() if s.clientIdentifier == self.machineIdentifier]
+        """Returns :class:`~plexapi.myplex.MyPlexResource` with server of current item."""
+        server = [
+            s for s in self._server.resources() if s.clientIdentifier == self.machineIdentifier
+        ]
         if len(server) == 0:
-            raise NotFound(f'Unable to find server with uuid {self.machineIdentifier}')
+            raise NotFound(f"Unable to find server with uuid {self.machineIdentifier}")
         return server[0]
 
     def getMedia(self):
-        """ Returns list of :class:`~plexapi.base.Playable` which belong to this sync item. """
+        """Returns list of :class:`~plexapi.base.Playable` which belong to this sync item."""
         server = self.server().connect()
-        key = f'/sync/items/{self.id}'
+        key = f"/sync/items/{self.id}"
         return server.fetchItems(key)
 
     def markDownloaded(self, media):
-        """ Mark the file as downloaded (by the nature of Plex it will be marked as downloaded within
-            any SyncItem where it presented).
+        """Mark the file as downloaded (by the nature of Plex it will be marked as downloaded within
+        any SyncItem where it presented).
 
-            Parameters:
-                media (base.Playable): the media to be marked as downloaded.
+        Parameters:
+            media (base.Playable): the media to be marked as downloaded.
         """
-        url = f'/sync/{self.clientIdentifier}/item/{media.ratingKey}/downloaded'
+        url = f"/sync/{self.clientIdentifier}/item/{media.ratingKey}/downloaded"
         media._server.query(url, method=requests.put)
 
     def delete(self):
-        """ Removes current SyncItem """
+        """Removes current SyncItem"""
         url = SyncList.key.format(clientId=self.clientIdentifier)
-        url += '/' + str(self.id)
+        url += "/" + str(self.id)
         self._server.query(url, self._server._session.delete)
 
 
 class SyncList(PlexObject):
-    """ Represents a Mobile Sync state, specific for single client, within one SyncList may be presented
-        items from different servers.
+    """Represents a Mobile Sync state, specific for single client, within one SyncList may be presented
+    items from different servers.
 
-        Attributes:
-            clientId (str): an identifier of the client.
-            items (List<:class:`~plexapi.sync.SyncItem`>): list of registered items to sync.
+    Attributes:
+        clientId (str): an identifier of the client.
+        items (List<:class:`~plexapi.sync.SyncItem`>): list of registered items to sync.
     """
-    key = 'https://plex.tv/devices/{clientId}/sync_items'
-    TAG = 'SyncList'
+
+    key = "https://plex.tv/devices/{clientId}/sync_items"
+    TAG = "SyncList"
 
     def _loadData(self, data):
-        """ Load attribute values from Plex XML response. """
-        self.clientId = data.attrib.get('clientIdentifier')
+        """Load attribute values from Plex XML response."""
+        self.clientId = data.attrib.get("clientIdentifier")
         self.items = []
 
-        syncItems = data.find('SyncItems')
+        syncItems = data.find("SyncItems")
         if syncItems:
-            for sync_item in syncItems.iter('SyncItem'):
+            for sync_item in syncItems.iter("SyncItem"):
                 item = SyncItem(self._server, sync_item, clientIdentifier=self.clientId)
                 self.items.append(item)
 
 
 class Status:
-    """ Represents a current status of specific :class:`~plexapi.sync.SyncItem`.
+    """Represents a current status of specific :class:`~plexapi.sync.SyncItem`.
 
-        Attributes:
-            failureCode: unknown, never got one yet.
-            failure: unknown.
-            state (str): server-side status of the item, can be `completed`, `pending`, empty, and probably something
-                         else.
-            itemsCount (int): total items count.
-            itemsCompleteCount (int): count of transcoded and/or downloaded items.
-            itemsDownloadedCount (int): count of downloaded items.
-            itemsReadyCount (int): count of transcoded items, which can be downloaded.
-            totalSize (int): total size in bytes of complete items.
-            itemsSuccessfulCount (int): unknown, in my experience it always was equal to `itemsCompleteCount`.
+    Attributes:
+        failureCode: unknown, never got one yet.
+        failure: unknown.
+        state (str): server-side status of the item, can be `completed`, `pending`, empty, and probably something
+                     else.
+        itemsCount (int): total items count.
+        itemsCompleteCount (int): count of transcoded and/or downloaded items.
+        itemsDownloadedCount (int): count of downloaded items.
+        itemsReadyCount (int): count of transcoded items, which can be downloaded.
+        totalSize (int): total size in bytes of complete items.
+        itemsSuccessfulCount (int): unknown, in my experience it always was equal to `itemsCompleteCount`.
     """
 
-    def __init__(self, itemsCount, itemsCompleteCount, state, totalSize, itemsDownloadedCount, itemsReadyCount,
-                 itemsSuccessfulCount, failureCode, failure):
+    def __init__(
+        self,
+        itemsCount,
+        itemsCompleteCount,
+        state,
+        totalSize,
+        itemsDownloadedCount,
+        itemsReadyCount,
+        itemsSuccessfulCount,
+        failureCode,
+        failure,
+    ):
         self.itemsDownloadedCount = plexapi.utils.cast(int, itemsDownloadedCount)
         self.totalSize = plexapi.utils.cast(int, totalSize)
         self.itemsReadyCount = plexapi.utils.cast(int, itemsReadyCount)
@@ -162,89 +180,104 @@ class Status:
             itemsCompleteCount=self.itemsCompleteCount,
             itemsDownloadedCount=self.itemsDownloadedCount,
             itemsReadyCount=self.itemsReadyCount,
-            itemsSuccessfulCount=self.itemsSuccessfulCount
+            itemsSuccessfulCount=self.itemsSuccessfulCount,
         )
-        return f'<{self.__class__.__name__}>:{d}'
+        return f"<{self.__class__.__name__}>:{d}"
 
 
 class MediaSettings:
-    """ Transcoding settings used for all media within :class:`~plexapi.sync.SyncItem`.
+    """Transcoding settings used for all media within :class:`~plexapi.sync.SyncItem`.
 
-        Attributes:
-            audioBoost (int): unknown.
-            maxVideoBitrate (int|str): maximum bitrate for video, may be empty string.
-            musicBitrate (int|str): maximum bitrate for music, may be an empty string.
-            photoQuality (int): photo quality on scale 0 to 100.
-            photoResolution (str): maximum photo resolution, formatted as WxH (e.g. `1920x1080`).
-            videoResolution (str): maximum video resolution, formatted as WxH (e.g. `1280x720`, may be empty).
-            subtitleSize (int): subtitle size on scale 0 to 100.
-            videoQuality (int): video quality on scale 0 to 100.
+    Attributes:
+        audioBoost (int): unknown.
+        maxVideoBitrate (int|str): maximum bitrate for video, may be empty string.
+        musicBitrate (int|str): maximum bitrate for music, may be an empty string.
+        photoQuality (int): photo quality on scale 0 to 100.
+        photoResolution (str): maximum photo resolution, formatted as WxH (e.g. `1920x1080`).
+        videoResolution (str): maximum video resolution, formatted as WxH (e.g. `1280x720`, may be empty).
+        subtitleSize (int): subtitle size on scale 0 to 100.
+        videoQuality (int): video quality on scale 0 to 100.
     """
 
-    def __init__(self, maxVideoBitrate=4000, videoQuality=100, videoResolution='1280x720', audioBoost=100,
-                 musicBitrate=192, photoQuality=74, photoResolution='1920x1080', subtitleSize=100):
+    def __init__(
+        self,
+        maxVideoBitrate=4000,
+        videoQuality=100,
+        videoResolution="1280x720",
+        audioBoost=100,
+        musicBitrate=192,
+        photoQuality=74,
+        photoResolution="1920x1080",
+        subtitleSize=100,
+    ):
         self.audioBoost = plexapi.utils.cast(int, audioBoost)
-        self.maxVideoBitrate = plexapi.utils.cast(int, maxVideoBitrate) if maxVideoBitrate != '' else ''
-        self.musicBitrate = plexapi.utils.cast(int, musicBitrate) if musicBitrate != '' else ''
-        self.photoQuality = plexapi.utils.cast(int, photoQuality) if photoQuality != '' else ''
+        self.maxVideoBitrate = (
+            plexapi.utils.cast(int, maxVideoBitrate) if maxVideoBitrate != "" else ""
+        )
+        self.musicBitrate = plexapi.utils.cast(int, musicBitrate) if musicBitrate != "" else ""
+        self.photoQuality = plexapi.utils.cast(int, photoQuality) if photoQuality != "" else ""
         self.photoResolution = photoResolution
         self.videoResolution = videoResolution
-        self.subtitleSize = plexapi.utils.cast(int, subtitleSize) if subtitleSize != '' else ''
-        self.videoQuality = plexapi.utils.cast(int, videoQuality) if videoQuality != '' else ''
+        self.subtitleSize = plexapi.utils.cast(int, subtitleSize) if subtitleSize != "" else ""
+        self.videoQuality = plexapi.utils.cast(int, videoQuality) if videoQuality != "" else ""
 
     @staticmethod
     def createVideo(videoQuality):
-        """ Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided video quality value.
+        """Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided video quality value.
 
-            Parameters:
-                videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in this module.
+        Parameters:
+            videoQuality (int): idx of quality of the video, one of VIDEO_QUALITY_* values defined in this module.
 
-            Raises:
-                :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
+        Raises:
+            :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
         """
         if videoQuality == VIDEO_QUALITY_ORIGINAL:
-            return MediaSettings('', '', '')
-        elif videoQuality < len(VIDEO_QUALITIES['bitrate']):
-            return MediaSettings(VIDEO_QUALITIES['bitrate'][videoQuality],
-                                 VIDEO_QUALITIES['videoQuality'][videoQuality],
-                                 VIDEO_QUALITIES['videoResolution'][videoQuality])
+            return MediaSettings("", "", "")
+        elif videoQuality < len(VIDEO_QUALITIES["bitrate"]):
+            return MediaSettings(
+                VIDEO_QUALITIES["bitrate"][videoQuality],
+                VIDEO_QUALITIES["videoQuality"][videoQuality],
+                VIDEO_QUALITIES["videoResolution"][videoQuality],
+            )
         else:
-            raise BadRequest('Unexpected video quality')
+            raise BadRequest("Unexpected video quality")
 
     @staticmethod
     def createMusic(bitrate):
-        """ Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided music quality value
+        """Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided music quality value
 
-            Parameters:
-                bitrate (int): maximum bitrate for synchronized music, better use one of MUSIC_BITRATE_* values from the
-                               module
+        Parameters:
+            bitrate (int): maximum bitrate for synchronized music, better use one of MUSIC_BITRATE_* values from the
+                           module
         """
         return MediaSettings(musicBitrate=bitrate)
 
     @staticmethod
     def createPhoto(resolution):
-        """ Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided photo quality value.
+        """Returns a :class:`~plexapi.sync.MediaSettings` object, based on provided photo quality value.
 
-            Parameters:
-                resolution (str): maximum allowed resolution for synchronized photos, see PHOTO_QUALITY_* values in the
-                                  module.
+        Parameters:
+            resolution (str): maximum allowed resolution for synchronized photos, see PHOTO_QUALITY_* values in the
+                              module.
 
-            Raises:
-                :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
+        Raises:
+            :exc:`~plexapi.exceptions.BadRequest`: When provided unknown video quality.
         """
         if resolution in PHOTO_QUALITIES:
-            return MediaSettings(photoQuality=PHOTO_QUALITIES[resolution], photoResolution=resolution)
+            return MediaSettings(
+                photoQuality=PHOTO_QUALITIES[resolution], photoResolution=resolution
+            )
         else:
-            raise BadRequest('Unexpected photo quality')
+            raise BadRequest("Unexpected photo quality")
 
 
 class Policy:
-    """ Policy of syncing the media (how many items to sync and process watched media or not).
+    """Policy of syncing the media (how many items to sync and process watched media or not).
 
-        Attributes:
-            scope (str): type of limitation policy, can be `count` or `all`.
-            value (int): amount of media to sync, valid only when `scope=count`.
-            unwatched (bool): True means disallow to sync watched media.
+    Attributes:
+        scope (str): type of limitation policy, can be `count` or `all`.
+        value (int): amount of media to sync, valid only when `scope=count`.
+        unwatched (bool): True means disallow to sync watched media.
     """
 
     def __init__(self, scope, unwatched, value=0):
@@ -254,30 +287,43 @@ class Policy:
 
     @staticmethod
     def create(limit=None, unwatched=False):
-        """ Creates a :class:`~plexapi.sync.Policy` object for provided options and automatically sets proper `scope`
-            value.
+        """Creates a :class:`~plexapi.sync.Policy` object for provided options and automatically sets proper `scope`
+        value.
 
-            Parameters:
-                limit (int): limit items by count.
-                unwatched (bool): if True then watched items wouldn't be synced.
+        Parameters:
+            limit (int): limit items by count.
+            unwatched (bool): if True then watched items wouldn't be synced.
 
-            Returns:
-                :class:`~plexapi.sync.Policy`.
+        Returns:
+            :class:`~plexapi.sync.Policy`.
         """
-        scope = 'all'
+        scope = "all"
         if limit is None:
             limit = 0
         else:
-            scope = 'count'
+            scope = "count"
 
         return Policy(scope, unwatched, limit)
 
 
 VIDEO_QUALITIES = {
-    'bitrate': [64, 96, 208, 320, 720, 1500, 2e3, 3e3, 4e3, 8e3, 1e4, 12e3, 2e4],
-    'videoResolution': ['220x128', '220x128', '284x160', '420x240', '576x320', '720x480', '1280x720', '1280x720',
-                        '1280x720', '1920x1080', '1920x1080', '1920x1080', '1920x1080'],
-    'videoQuality': [10, 20, 30, 30, 40, 60, 60, 75, 100, 60, 75, 90, 100],
+    "bitrate": [64, 96, 208, 320, 720, 1500, 2e3, 3e3, 4e3, 8e3, 1e4, 12e3, 2e4],
+    "videoResolution": [
+        "220x128",
+        "220x128",
+        "284x160",
+        "420x240",
+        "576x320",
+        "720x480",
+        "1280x720",
+        "1280x720",
+        "1280x720",
+        "1920x1080",
+        "1920x1080",
+        "1920x1080",
+        "1920x1080",
+    ],
+    "videoQuality": [10, 20, 30, 30, 40, 60, 60, 75, 100, 60, 75, 90, 100],
 }
 
 VIDEO_QUALITY_0_2_MBPS = 2
@@ -299,13 +345,13 @@ AUDIO_BITRATE_192_KBPS = 192
 AUDIO_BITRATE_320_KBPS = 320
 
 PHOTO_QUALITIES = {
-    '720x480': 24,
-    '1280x720': 49,
-    '1920x1080': 74,
-    '3840x2160': 99,
+    "720x480": 24,
+    "1280x720": 49,
+    "1920x1080": 74,
+    "3840x2160": 99,
 }
 
-PHOTO_QUALITY_HIGHEST = PHOTO_QUALITY_2160p = '3840x2160'
-PHOTO_QUALITY_HIGH = PHOTO_QUALITY_1080p = '1920x1080'
-PHOTO_QUALITY_MEDIUM = PHOTO_QUALITY_720p = '1280x720'
-PHOTO_QUALITY_LOW = PHOTO_QUALITY_480p = '720x480'
+PHOTO_QUALITY_HIGHEST = PHOTO_QUALITY_2160p = "3840x2160"
+PHOTO_QUALITY_HIGH = PHOTO_QUALITY_1080p = "1920x1080"
+PHOTO_QUALITY_MEDIUM = PHOTO_QUALITY_720p = "1280x720"
+PHOTO_QUALITY_LOW = PHOTO_QUALITY_480p = "720x480"

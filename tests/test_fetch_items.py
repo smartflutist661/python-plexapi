@@ -14,9 +14,7 @@ def test_media_container_is_list():
 
 def test_media_container_extend():
     container_1 = MediaContainer(None, None, Track(None, None))
-    container_2 = MediaContainer(
-        None, None, [Track(None, None), Track(None, None)]
-    )
+    container_2 = MediaContainer(None, None, [Track(None, None), Track(None, None)])
     container_1.size, container_2.size = 1, 2
     container_1.offset, container_2.offset = 3, 4
     container_1.totalSize = container_2.totalSize = 10

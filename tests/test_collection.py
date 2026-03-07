@@ -1,10 +1,16 @@
 from urllib.parse import quote_plus
 
 import pytest
-from plexapi.exceptions import BadRequest, NotFound
 
-from . import conftest as utils
-from . import test_mixins
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
+
+from . import (
+    conftest as utils,
+    test_mixins,
+)
 
 
 def test_Collection_attrs(collection):
@@ -39,7 +45,10 @@ def test_Collection_attrs(collection):
     assert collection.title == "Test Collection"
     assert collection.titleSort == collection.title
     assert collection.type == "collection"
-    assert utils.is_composite(collection.thumb, prefix="/library/collections") and collection.ultraBlurColors is None
+    assert (
+        utils.is_composite(collection.thumb, prefix="/library/collections")
+        and collection.ultraBlurColors is None
+    )
     assert utils.is_datetime(collection.updatedAt)
     assert collection.listType == "video"
     assert collection.metadataType == collection.subtype
@@ -72,11 +81,7 @@ def test_Collection_items(collection):
 def test_Collection_filterUserUpdate(plex, movies):
     title = "test_Collection_filterUserUpdate"
     try:
-        collection = plex.createCollection(
-            title=title,
-            section=movies,
-            smart=True
-        )
+        collection = plex.createCollection(title=title, section=movies, smart=True)
 
         mode_dict = {"admin": 0, "user": 1}
         for key, value in mode_dict.items():
@@ -179,11 +184,9 @@ def test_Collection_edit(collection, movies):
     newTitleSort = "New Title Sort"
     newContentRating = "New Content Rating"
     newSummary = "New Summary"
-    collection \
-        .editTitle(newTitle) \
-        .editSortTitle(newTitleSort) \
-        .editContentRating(newContentRating) \
-        .editSummary(newSummary)
+    collection.editTitle(newTitle).editSortTitle(newTitleSort).editContentRating(
+        newContentRating
+    ).editSummary(newSummary)
     collection.reload()
     assert collection.title == newTitle
     assert collection.titleSort == newTitleSort
@@ -194,11 +197,9 @@ def test_Collection_edit(collection, movies):
     for f in fields:
         assert collection.isLocked(field=f)
 
-    collection \
-        .editTitle(title, locked=False) \
-        .editSortTitle(titleSort, locked=False) \
-        .editContentRating(contentRating or "", locked=False) \
-        .editSummary(summary, locked=False)
+    collection.editTitle(title, locked=False).editSortTitle(
+        titleSort, locked=False
+    ).editContentRating(contentRating or "", locked=False).editSummary(summary, locked=False)
     collection.reload()
     assert collection.title == title
     assert collection.titleSort == titleSort
@@ -213,11 +214,7 @@ def test_Collection_edit(collection, movies):
 def test_Collection_create(plex, tvshows):
     title = "test_Collection_create"
     try:
-        collection = plex.createCollection(
-            title=title,
-            section=tvshows,
-            items=tvshows.all()
-        )
+        collection = plex.createCollection(title=title, section=tvshows, items=tvshows.all())
         assert collection in tvshows.collections()
         assert collection.smart is False
     finally:
@@ -234,14 +231,16 @@ def test_Collection_createSmart(plex, tvshows):
             limit=3,
             libtype="episode",
             sort="episode.index:desc",
-            filters={"show.title": "Game of Thrones"}
+            filters={"show.title": "Game of Thrones"},
         )
         assert collection in tvshows.collections()
         assert collection.smart is True
         assert len(collection.items()) == 3
         assert all([e.type == "episode" for e in collection.items()])
         assert all([e.grandparentTitle == "Game of Thrones" for e in collection.items()])
-        assert collection.items() == sorted(collection.items(), key=lambda e: e.index, reverse=True)
+        assert collection.items() == sorted(
+            collection.items(), key=lambda e: e.index, reverse=True
+        )
         collection.updateFilters(limit=5, libtype="episode", filters={"show.title": "The 100"})
         collection.reload()
         assert len(collection.items()) == 5
@@ -256,8 +255,8 @@ def test_Collection_createSmart(plex, tvshows):
         {
             "and": [
                 {"or": [{"title": "elephant"}, {"title=": "Big Buck Bunny"}]},
-                {"year>>": '1990'},
-                {"unwatched": '1'},
+                {"year>>": "1990"},
+                {"unwatched": "1"},
             ]
         },
         {
@@ -265,15 +264,15 @@ def test_Collection_createSmart(plex, tvshows):
                 {
                     "and": [
                         {"title": "elephant"},
-                        {"year>>": '1990'},
-                        {"unwatched": '1'},
+                        {"year>>": "1990"},
+                        {"unwatched": "1"},
                     ]
                 },
                 {
                     "and": [
                         {"title=": "Big Buck Bunny"},
-                        {"year>>": '1990'},
-                        {"unwatched": '1'},
+                        {"year>>": "1990"},
+                        {"unwatched": "1"},
                     ]
                 },
             ]
@@ -299,7 +298,7 @@ def test_Collection_smartFilters(advancedFilters, plex, movies):
 
 
 def test_Collection_exceptions(plex, movies, movie, artist):
-    title = 'test_Collection_exceptions'
+    title = "test_Collection_exceptions"
     try:
         collection = plex.createCollection(title, section=movies.title, items=movie)
         with pytest.raises(BadRequest):
@@ -317,7 +316,9 @@ def test_Collection_exceptions(plex, movies, movie, artist):
         plex.createCollection(title, section=movies, items=[movie, artist])
 
     try:
-        collection = plex.createCollection(title, smart=True, section=movies.title, **{'year>>': 2000})
+        collection = plex.createCollection(
+            title, smart=True, section=movies.title, **{"year>>": 2000}
+        )
         with pytest.raises(BadRequest):
             collection.addItems(movie)
         with pytest.raises(BadRequest):
@@ -381,7 +382,7 @@ def test_Collection_mixins_tags(collection):
 
 def test_Collection_PlexWebURL(plex, collection):
     url = collection.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(collection.key) in url

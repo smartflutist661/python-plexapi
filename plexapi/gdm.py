@@ -8,6 +8,7 @@ Inspired by:
   hippojay's plexGDM: https://github.com/hippojay/script.plexbmc.helper/resources/lib/plexgdm.py
   iBaa's PlexConnect: https://github.com/iBaa/PlexConnect/PlexAPI.py
 """
+
 import socket
 import struct
 
@@ -15,8 +16,8 @@ import struct
 class GDM:
     """Base class to discover GDM services.
 
-       Attributes:
-           entries (List<dict>): List of server and/or client data discovered.
+    Attributes:
+        entries (List<dict>): List of server and/or client data discovered.
     """
 
     def __init__(self):
@@ -37,15 +38,16 @@ class GDM:
     def find_by_content_type(self, value):
         """Return a list of entries that match the content_type."""
         self.scan()
-        return [entry for entry in self.entries
-                if value in entry['data']['Content-Type']]
+        return [entry for entry in self.entries if value in entry["data"]["Content-Type"]]
 
     def find_by_data(self, values):
         """Return a list of entries that match the search parameters."""
         self.scan()
-        return [entry for entry in self.entries
-                if all(item in entry['data'].items()
-                       for item in values.items())]
+        return [
+            entry
+            for entry in self.entries
+            if all(item in entry["data"].items() for item in values.items())
+        ]
 
     def update(self, scan_for_clients):
         """Scan for new GDM services.
@@ -81,7 +83,7 @@ class GDM:
                  'from': ('10.10.10.101', 32412)}]
         """
 
-        gdm_msg = 'M-SEARCH * HTTP/1.0'.encode('ascii')
+        gdm_msg = "M-SEARCH * HTTP/1.0".encode("ascii")
         gdm_timeout = 1
 
         self.entries = []
@@ -92,19 +94,17 @@ class GDM:
         sock.settimeout(gdm_timeout)
 
         # Set the time-to-live for messages for local network
-        sock.setsockopt(socket.IPPROTO_IP,
-                        socket.IP_MULTICAST_TTL,
-                        struct.pack("B", gdm_timeout))
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, struct.pack("B", gdm_timeout))
 
         if scan_for_clients:
             # setup socket for broadcast to Plex clients
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            gdm_ip = '255.255.255.255'
+            gdm_ip = "255.255.255.255"
             gdm_port = 32412
         else:
             # setup socket for multicast to Plex server(s)
-            gdm_ip = '239.0.0.250'
+            gdm_ip = "239.0.0.250"
             gdm_port = 32414
 
         try:
@@ -115,17 +115,19 @@ class GDM:
             while True:
                 try:
                     bdata, host = sock.recvfrom(1024)
-                    data = bdata.decode('utf-8')
-                    if '200 OK' in data.splitlines()[0]:
-                        ddata = {k: v.strip() for (k, v) in (
-                            line.split(':') for line in
-                            data.splitlines() if ':' in line)}
-                        identifier = ddata.get('Resource-Identifier')
+                    data = bdata.decode("utf-8")
+                    if "200 OK" in data.splitlines()[0]:
+                        ddata = {
+                            k: v.strip()
+                            for (k, v) in (
+                                line.split(":") for line in data.splitlines() if ":" in line
+                            )
+                        }
+                        identifier = ddata.get("Resource-Identifier")
                         if identifier and identifier in known_responses:
                             continue
                         known_responses.append(identifier)
-                        self.entries.append({'data': ddata,
-                                             'from': host})
+                        self.entries.append({"data": ddata, "from": host})
                 except socket.timeout:
                     break
         finally:

@@ -1,14 +1,13 @@
 import time
 
-import plexapi.utils as utils
 import pytest
+
+import plexapi.utils as utils
 from plexapi.exceptions import NotFound
 
 
 def test_utils_toDatetime():
-    assert (
-        str(utils.toDatetime("2006-03-03", format="%Y-%m-%d")) == "2006-03-03 00:00:00"
-    )
+    assert str(utils.toDatetime("2006-03-03", format="%Y-%m-%d")) == "2006-03-03 00:00:00"
     # assert str(utils.toDatetime('0'))[:-9] in ['1970-01-01', '1969-12-31']
 
 
@@ -77,14 +76,9 @@ def test_utils_download(plex, episode):
     url = episode.getStreamURL()
     locations = episode.locations[0]
     session = episode._server._session
-    assert utils.download(
-        url, plex._token, filename=locations, mocked=True)
-    assert utils.download(
-        url, plex._token, filename=locations, session=session, mocked=True
-    )
-    assert utils.download(
-        episode.thumbUrl, plex._token, filename=episode.title, mocked=True
-    )
+    assert utils.download(url, plex._token, filename=locations, mocked=True)
+    assert utils.download(url, plex._token, filename=locations, session=session, mocked=True)
+    assert utils.download(episode.thumbUrl, plex._token, filename=episode.title, mocked=True)
 
 
 def test_millisecondToHumanstr():

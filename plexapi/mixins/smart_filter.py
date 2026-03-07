@@ -1,15 +1,26 @@
 from collections import deque
-from typing import Deque, Set, Tuple, Union
-from urllib.parse import parse_qsl, unquote, urlsplit
+from typing import (
+    Deque,
+    Set,
+    Tuple,
+    Union,
+)
+from urllib.parse import (
+    parse_qsl,
+    unquote,
+    urlsplit,
+)
 
 from plexapi import utils
 
 
 class SmartFilterMixin:
-    """ Mixin for Plex objects that can have smart filters. """
+    """Mixin for Plex objects that can have smart filters."""
 
-    def _parseFilterGroups(self, feed: Deque[Tuple[str, str]], returnOn: Union[Set[str], None] = None) -> dict:
-        """ Parse filter groups from input lines between push and pop. """
+    def _parseFilterGroups(
+        self, feed: Deque[Tuple[str, str]], returnOn: Union[Set[str], None] = None
+    ) -> dict:
+        """Parse filter groups from input lines between push and pop."""
         currentFiltersStack: list[dict] = []
         operatorForStack = None
         if returnOn is None:
@@ -22,9 +33,7 @@ class SmartFilterMixin:
             key, value = feed.popleft()  # consume the first item
             if key == "push":
                 # recurse and add the result to the current stack
-                currentFiltersStack.append(
-                    self._parseFilterGroups(feed, returnOn)
-                )
+                currentFiltersStack.append(self._parseFilterGroups(feed, returnOn))
             elif key in returnOn:
                 # stop iterating and return the current stack
                 if not key == "pop":
@@ -35,8 +44,7 @@ class SmartFilterMixin:
                 # set the operator
                 if operatorForStack and not operatorForStack == key:
                     raise ValueError(
-                        "cannot have different logical operators for the same"
-                        " filter group"
+                        "cannot have different logical operators for the same" " filter group"
                     )
                 operatorForStack = key
 
@@ -53,7 +61,7 @@ class SmartFilterMixin:
         return currentFiltersStack.pop()
 
     def _parseQueryFeed(self, feed: "deque[Tuple[str, str]]") -> dict:
-        """ Parse the query string into a dict. """
+        """Parse the query string into a dict."""
         filtersDict: dict[str, Union[str, int, list, dict]] = {}
         special_keys = {"type", "sort"}
         integer_keys = {"includeGuids", "limit"}
@@ -71,20 +79,16 @@ class SmartFilterMixin:
                 filtersDict["sort"] = value.split(",")
             else:
                 feed.appendleft((key, value))  # put the item back
-                filter_group = self._parseFilterGroups(
-                    feed, returnOn=reserved_keys
-                )
+                filter_group = self._parseFilterGroups(feed, returnOn=reserved_keys)
                 if "filters" in filtersDict:
-                    filtersDict["filters"] = {
-                        "and": [filtersDict["filters"], filter_group]
-                    }
+                    filtersDict["filters"] = {"and": [filtersDict["filters"], filter_group]}
                 else:
                     filtersDict["filters"] = filter_group
 
         return filtersDict
 
     def _parseFilters(self, content):
-        """ Parse the content string and returns the filter dict. """
+        """Parse the content string and returns the filter dict."""
         content = urlsplit(unquote(content))
         feed = deque()
 

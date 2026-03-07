@@ -74,9 +74,7 @@ def test_client_playback(plex, client, movies, proxy):
     try:
         # Need a movie with subtitles
         mtype = "video"
-        subs = [
-            stream for stream in movie.subtitleStreams() if stream.language == "English"
-        ]
+        subs = [stream for stream in movie.subtitleStreams() if stream.language == "English"]
         print(f"client.playMedia({movie.title})")
         client.playMedia(movie)
         time.sleep(5)

@@ -4,11 +4,18 @@ from time import sleep
 from urllib.parse import quote_plus
 
 import pytest
-from plexapi.exceptions import BadRequest, NotFound
+
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
 from plexapi.sync import VIDEO_QUALITY_3_MBPS_720p
 
-from . import conftest as utils
-from . import test_media, test_mixins
+from . import (
+    conftest as utils,
+    test_media,
+    test_mixins,
+)
 
 
 def test_video_Movie(movies, movie):
@@ -22,14 +29,7 @@ def test_video_Movie_attributeerror(movie):
 
 
 def test_video_ne(movies):
-    assert (
-        len(
-            movies.fetchItems(
-                f"/library/sections/{movies.key}/all", title__ne="Sintel"
-            )
-        )
-        == 3
-    )
+    assert len(movies.fetchItems(f"/library/sections/{movies.key}/all", title__ne="Sintel")) == 3
 
 
 def test_video_Movie_delete(movie, patched_http_call):
@@ -48,9 +48,9 @@ def test_video_Movie_attrs(movies):  # noqa: C901
     if movie.art:
         assert utils.is_art(movie.art)
     assert utils.is_float(movie.rating)
-    assert movie.ratingImage == 'rottentomatoes://image.rating.ripe'
+    assert movie.ratingImage == "rottentomatoes://image.rating.ripe"
     assert utils.is_float(movie.audienceRating)
-    assert movie.audienceRatingImage == 'rottentomatoes://image.rating.upright'
+    assert movie.audienceRatingImage == "rottentomatoes://image.rating.upright"
     if movie.ratings:
         assert "imdb://image.rating" in [i.image for i in movie.ratings]
     if movie.images:
@@ -318,7 +318,7 @@ def test_video_Movie_getStreamURL(movie, account):
     assert "protocol" not in url
     assert "videoResolution" not in url
 
-    url = movie.getStreamURL(videoResolution="800x600", protocol='dash')
+    url = movie.getStreamURL(videoResolution="800x600", protocol="dash")
     assert url.startswith(f"{utils.SERVER_BASEURL}/video/:/transcode/universal/start.mpd")
     assert "protocol=dash" in url
     assert "videoResolution=800x600" in url
@@ -465,7 +465,9 @@ def test_video_Movie_on_demand_subtitles(movie, account):
 
 def test_video_Movie_match(movies):
     sectionAgent = movies.agent
-    sectionAgents = [agent.identifier for agent in movies.agents() if agent.shortIdentifier != 'none']
+    sectionAgents = [
+        agent.identifier for agent in movies.agents() if agent.shortIdentifier != "none"
+    ]
     sectionAgents.remove(sectionAgent)
     altAgent = sectionAgents[0]
 
@@ -475,7 +477,7 @@ def test_video_Movie_match(movies):
     titleUrlEncode = quote_plus(title)
 
     def parse_params(key):
-        params = key.split('?', 1)[1]
+        params = key.split("?", 1)[1]
         params = params.split("&")
         return {x.split("=")[0]: x.split("=")[1] for x in params}
 
@@ -485,10 +487,10 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('title') == ""
-        assert parsedParams.get('year') == ""
-        assert parsedParams.get('agent') == sectionAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("title") == ""
+        assert parsedParams.get("year") == ""
+        assert parsedParams.get("agent") == sectionAgent
     else:
         assert len(results) == 0
 
@@ -498,10 +500,10 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('title') == titleUrlEncode
-        assert parsedParams.get('year') == ""
-        assert parsedParams.get('agent') == sectionAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("title") == titleUrlEncode
+        assert parsedParams.get("year") == ""
+        assert parsedParams.get("agent") == sectionAgent
     else:
         assert len(results) == 0
 
@@ -511,10 +513,10 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('title') == titleUrlEncode
-        assert parsedParams.get('year') == year
-        assert parsedParams.get('agent') == sectionAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("title") == titleUrlEncode
+        assert parsedParams.get("year") == year
+        assert parsedParams.get("agent") == sectionAgent
     else:
         assert len(results) == 0
 
@@ -524,8 +526,8 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('agent') == sectionAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("agent") == sectionAgent
     else:
         assert len(results) == 0
 
@@ -535,8 +537,8 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('agent') == altAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("agent") == altAgent
     else:
         assert len(results) == 0
 
@@ -546,8 +548,8 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
-        assert parsedParams.get('agent') == altAgent
+        assert parsedParams.get("manual") == "1"
+        assert parsedParams.get("agent") == altAgent
     else:
         assert len(results) == 0
 
@@ -557,13 +559,13 @@ def test_video_Movie_match(movies):
         assert initpath.startswith(movie.key)
         params = initpath.split(movie.key)[1]
         parsedParams = parse_params(params)
-        assert parsedParams.get('manual') == '1'
+        assert parsedParams.get("manual") == "1"
     else:
         assert len(results) == 0
 
 
 def test_video_Movie_hubs(movies):
-    movie = movies.get('Big Buck Bunny')
+    movie = movies.get("Big Buck Bunny")
     hubs = movie.hubs()
     assert len(hubs)
     hub = hubs[0]
@@ -592,8 +594,7 @@ def test_video_Movie_hubs(movies):
 def test_video_Movie_augmentation(movie, account):
     onlineMediaSources = account.onlineMediaSources()
     tidalOptOut = next(
-        optOut for optOut in onlineMediaSources
-        if optOut.key == 'tv.plex.provider.music'
+        optOut for optOut in onlineMediaSources if optOut.key == "tv.plex.provider.music"
     )
     optOutValue = tidalOptOut.value
 
@@ -633,7 +634,7 @@ def test_video_Movie_extras(account_plexpass, movies):
     extras = movie.extras()
     assert extras
     extra = extras[0]
-    assert extra.type == 'clip'
+    assert extra.type == "clip"
     assert extra.section() == movies
 
 
@@ -651,10 +652,9 @@ def test_video_Movie_batchEdits(movie):
     new_summary = "New summary"
     new_tagline = "New tagline"
     new_studio = "New studio"
-    movie.editTitle(new_title) \
-        .editSummary(new_summary) \
-        .editTagline(new_tagline) \
-        .editStudio(new_studio)
+    movie.editTitle(new_title).editSummary(new_summary).editTagline(new_tagline).editStudio(
+        new_studio
+    )
     assert movie._edits != {}
     movie.saveEdits().reload()
     assert movie._edits is None
@@ -663,12 +663,9 @@ def test_video_Movie_batchEdits(movie):
     assert movie.tagline == new_tagline
     assert movie.studio == new_studio
 
-    movie.batchEdits() \
-        .editTitle(title, locked=False) \
-        .editSummary(summary, locked=False) \
-        .editTagline(tagline, locked=False) \
-        .editStudio(studio, locked=False) \
-        .saveEdits().reload()
+    movie.batchEdits().editTitle(title, locked=False).editSummary(
+        summary, locked=False
+    ).editTagline(tagline, locked=False).editStudio(studio, locked=False).saveEdits().reload()
     assert movie.title == title
     assert movie.summary == summary
     assert movie.tagline == tagline
@@ -766,12 +763,12 @@ def test_video_Movie_media_tags(movie):
 
 def test_video_Movie_PlexWebURL(plex, movie):
     url = movie.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(movie.key) in url
     # Test a different base
-    base = 'https://doesnotexist.com/plex'
+    base = "https://doesnotexist.com/plex"
     url = movie.getWebURL(base=base)
     assert url.startswith(base)
 
@@ -798,7 +795,7 @@ def test_video_Show_attrs(show):
     show.reload()
     assert utils.is_float(show.audienceRating)
     assert show.audienceRatingImage == "themoviedb://image.rating"
-    assert show.audioLanguage == ''
+    assert show.audioLanguage == ""
     assert show.autoDeletionItemPolicyUnwatchedLibrary == 0
     assert show.autoDeletionItemPolicyWatchedLibrary == 0
     assert show.enableCreditsMarkerGeneration == -1
@@ -830,11 +827,11 @@ def test_video_Show_attrs(show):
         assert show.actors == show.roles
     assert show._server._baseurl == utils.SERVER_BASEURL
     assert utils.is_int(show.seasonCount)
-    assert show.showOrdering in (None, 'aired')
+    assert show.showOrdering in (None, "aired")
     assert show.slug == "game-of-thrones"
     assert show.studio == "Revolution Sun Studios"
     assert utils.is_string(show.summary, gte=100)
-    assert show.subtitleLanguage == ''
+    assert show.subtitleLanguage == ""
     assert show.subtitleMode == -1
     assert show.tagline == "Winter is coming."
     assert utils.is_metadata(show.theme, contains="/theme/")
@@ -1027,9 +1024,9 @@ def test_video_Show_media_tags(show):
 
 def test_video_Show_PlexWebURL(plex, show):
     url = show.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(show.key) in url
 
 
@@ -1044,7 +1041,7 @@ def test_video_Show_commonSenseMedia(show):
     assert commonSenseMedia.oneLiner
 
     ageRating = commonSenseMedia.ageRatings[0]
-    assert ageRating.type == 'official'
+    assert ageRating.type == "official"
     assert utils.is_float(ageRating.age, gte=0.0)
     assert utils.is_float(ageRating.rating, gte=0.0)
 
@@ -1061,8 +1058,8 @@ def test_video_Show_commonSenseMedia_full(account_plexpass, show):
     ageRatings = commonSenseMedia.ageRatings
     assert len(ageRatings) == 3
     types = {r.type for r in ageRatings}
-    assert types == {'official', 'child', 'adult'}
-    ageRating = next(r for r in ageRatings if r.type == 'official')
+    assert types == {"official", "child", "adult"}
+    ageRating = next(r for r in ageRatings if r.type == "official")
     assert utils.is_float(ageRating.age, gte=0.0)
     if ageRating.ageGroup is not None:
         assert ageRating.ageGroup
@@ -1097,7 +1094,7 @@ def test_video_Season_attrs(show):
     assert utils.is_datetime(season.addedAt)
     if season.art:
         assert utils.is_art(season.art)
-    assert season.audioLanguage == ''
+    assert season.audioLanguage == ""
     assert season.guid == "plex://season/602e67d31d3358002c411c39"
     assert "tvdb://364731" in [i.id for i in season.guids]
     assert season.index == 1
@@ -1122,7 +1119,7 @@ def test_video_Season_attrs(show):
     assert utils.is_int(season.ratingKey)
     assert season._server._baseurl == utils.SERVER_BASEURL
     assert utils.is_string(season.summary, gte=100)
-    assert season.subtitleLanguage == ''
+    assert season.subtitleLanguage == ""
     assert season.subtitleMode == -1
     if season.thumb:
         assert utils.is_thumb(season.thumb)
@@ -1225,9 +1222,9 @@ def test_video_Season_mixins_tags(show):
 
 def test_video_Season_PlexWebURL(plex, season):
     url = season.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(season.key) in url
 
 
@@ -1236,9 +1233,7 @@ def test_video_Episode_updateProgress(episode, patched_http_call):
 
 
 def test_video_Episode_updateTimeline(episode, patched_http_call):
-    episode.updateTimeline(
-        2 * 60 * 1000, state="playing", duration=episode.duration
-    )  # 2 minutes.
+    episode.updateTimeline(2 * 60 * 1000, state="playing", duration=episode.duration)  # 2 minutes.
 
 
 def test_video_Episode(show):
@@ -1457,9 +1452,9 @@ def test_video_Episode_media_tags(episode):
 
 def test_video_Episode_PlexWebURL(plex, episode):
     url = episode.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(episode.key) in url
 
 
@@ -1549,31 +1544,29 @@ def test_video_exists_accessible(movie, episode):
 
 
 def test_video_edits_locked(movie, episode):
-    edits = {'titleSort.value': 'New Title Sort', 'titleSort.locked': 1}
+    edits = {"titleSort.value": "New Title Sort", "titleSort.locked": 1}
     movieTitleSort = movie.titleSort
     movie.edit(**edits)
     movie.reload()
     for field in movie.fields:
-        if field.name == 'titleSort':
-            assert movie.titleSort == 'New Title Sort'
+        if field.name == "titleSort":
+            assert movie.titleSort == "New Title Sort"
             assert field.locked is True
             assert movie.isLocked(field=field.name)
-    movie.edit(**{'titleSort.value': movieTitleSort, 'titleSort.locked': 0})
+    movie.edit(**{"titleSort.value": movieTitleSort, "titleSort.locked": 0})
 
     episodeTitleSort = episode.titleSort
     episode.edit(**edits)
     episode.reload()
     for field in episode.fields:
-        if field.name == 'titleSort':
-            assert episode.titleSort == 'New Title Sort'
+        if field.name == "titleSort":
+            assert episode.titleSort == "New Title Sort"
             assert field.locked is True
             assert episode.isLocked(field=field.name)
-    episode.edit(**{'titleSort.value': episodeTitleSort, 'titleSort.locked': 0})
+    episode.edit(**{"titleSort.value": episodeTitleSort, "titleSort.locked": 0})
 
 
-@pytest.mark.xfail(
-    reason="broken? assert len(plex.conversions()) == 1 may fail on some builds"
-)
+@pytest.mark.xfail(reason="broken? assert len(plex.conversions()) == 1 may fail on some builds")
 def test_video_optimize(plex, movie, tvshows, show):
     plex.optimizedItems(removeAll=True)
     movie.optimize(target="mobile")
@@ -1597,7 +1590,7 @@ def test_video_optimize(plex, movie, tvshows, show):
         videoQuality=VIDEO_QUALITY_3_MBPS_720p,
         locationID=locations[0].id,
         limit=1,
-        unwatched=True
+        unwatched=True,
     )
     assert len(plex.optimizedItems()) == 1
     plex.optimizedItems(removeAll=True)
@@ -1613,11 +1606,11 @@ def test_video_Movie_matadataDirectory(movie):
     assert os.path.exists(os.path.join(utils.BOOTSTRAP_DATA_PATH, movie.metadataDirectory))
 
     for poster in movie.posters():
-        if not poster.ratingKey.startswith('http'):
+        if not poster.ratingKey.startswith("http"):
             assert os.path.exists(os.path.join(utils.BOOTSTRAP_DATA_PATH, poster.resourceFilepath))
 
     for art in movie.arts():
-        if not art.ratingKey.startswith('http'):
+        if not art.ratingKey.startswith("http"):
             assert os.path.exists(os.path.join(utils.BOOTSTRAP_DATA_PATH, art.resourceFilepath))
 
 
@@ -1633,4 +1626,6 @@ def test_video_cache_invalidation(movie):
     after_guids = movie.guids
     after_id = id(after_guids)
     assert before_id != after_id, "GUIDs should have a new object ID after a reload"
-    assert str(before_guids) == str(after_guids), "GUIDs should not have changed content after a reload"
+    assert str(before_guids) == str(
+        after_guids
+    ), "GUIDs should not have changed content after a reload"

@@ -1,7 +1,10 @@
 from urllib.parse import quote_plus
 
 from plexapi import utils
-from plexapi.base import PlexObject, cached_data_property
+from plexapi.base import (
+    PlexObject,
+    cached_data_property,
+)
 from plexapi.exceptions import BadRequest
 
 
@@ -35,7 +38,7 @@ class PlayQueue(PlexObject):
     TYPE = "playqueue"
 
     def _loadData(self, data):
-        """ Load attribute values from Plex XML response. """
+        """Load attribute values from Plex XML response."""
         self.identifier = data.attrib.get("identifier")
         self.mediaTagPrefix = data.attrib.get("mediaTagPrefix")
         self.mediaTagVersion = utils.cast(int, data.attrib.get("mediaTagVersion"))
@@ -43,22 +46,16 @@ class PlayQueue(PlexObject):
         self.playQueueLastAddedItemID = utils.cast(
             int, data.attrib.get("playQueueLastAddedItemID")
         )
-        self.playQueueSelectedItemID = utils.cast(
-            int, data.attrib.get("playQueueSelectedItemID")
-        )
+        self.playQueueSelectedItemID = utils.cast(int, data.attrib.get("playQueueSelectedItemID"))
         self.playQueueSelectedItemOffset = utils.cast(
             int, data.attrib.get("playQueueSelectedItemOffset")
         )
         self.playQueueSelectedMetadataItemID = utils.cast(
             int, data.attrib.get("playQueueSelectedMetadataItemID")
         )
-        self.playQueueShuffled = utils.cast(
-            bool, data.attrib.get("playQueueShuffled", 0)
-        )
+        self.playQueueShuffled = utils.cast(bool, data.attrib.get("playQueueShuffled", 0))
         self.playQueueSourceURI = data.attrib.get("playQueueSourceURI")
-        self.playQueueTotalCount = utils.cast(
-            int, data.attrib.get("playQueueTotalCount")
-        )
+        self.playQueueTotalCount = utils.cast(int, data.attrib.get("playQueueTotalCount"))
         self.playQueueVersion = utils.cast(int, data.attrib.get("playQueueVersion"))
         self.size = utils.cast(int, data.attrib.get("size", 0))
         self.selectedItem = self[self.playQueueSelectedItemOffset]
@@ -91,9 +88,7 @@ class PlayQueue(PlexObject):
         if len(matches) == 1:
             return matches[0]
         elif len(matches) > 1:
-            raise BadRequest(
-                f"{item} occurs multiple times in this PlayQueue, provide exact item"
-            )
+            raise BadRequest(f"{item} occurs multiple times in this PlayQueue, provide exact item")
         else:
             raise BadRequest(f"{item} not valid for this PlayQueue")
 
@@ -182,7 +177,9 @@ class PlayQueue(PlexObject):
                 args["playlistID"] = items.ratingKey
             else:
                 args["type"] = items.listType
-            args["uri"] = f"server://{server.machineIdentifier}/{server.library.identifier}{items.key}"
+            args["uri"] = (
+                f"server://{server.machineIdentifier}/{server.library.identifier}{items.key}"
+            )
 
         if startItem:
             args["key"] = startItem.key
@@ -220,7 +217,7 @@ class PlayQueue(PlexObject):
         """
         args = {
             "type": "audio",
-            "uri": f"server://{server.machineIdentifier}/{server.library.identifier}{key}"
+            "uri": f"server://{server.machineIdentifier}/{server.library.identifier}{key}",
         }
         path = f"/playQueues{utils.joinArgs(args)}"
         data = server.query(path, method=server._session.post)

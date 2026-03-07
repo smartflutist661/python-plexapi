@@ -2,6 +2,7 @@
 """
 Plex-RefreshToken is a simple method to refresh a Plex account token by pinging Plex.tv.
 """
+
 import argparse
 
 import plexapi

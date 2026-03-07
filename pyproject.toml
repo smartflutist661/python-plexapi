@@ -1,12 +1,12 @@
 [project]
 name = "PlexAPI"
 authors = [
-    { name = "Michael Shepanski", email = "michael.shepanski@gmail.com" }
+    { name = "Michael Shepanski", email = "michael.shepanski@gmail.com" },
 ]
 description = "Python bindings for the Plex API."
 readme = "README.rst"
 requires-python = ">=3.10"
-keywords = ["plex", "api"]
+keywords = ["api", "plex"]
 license = "BSD-3-Clause"
 classifiers = [
     "Operating System :: OS Independent",
@@ -21,7 +21,9 @@ jwt = ["pyjwt[crypto]"]
 
 [dependency-groups]
 dev = [
+    "black",
     "flake8",
+    "isort",
     "pillow",
     "pyjwt[crypto]",
     "pytest",
@@ -41,7 +43,7 @@ Homepage = "https://github.com/pushingkarmaorg/python-plexapi"
 Documentation = "https://python-plexapi.readthedocs.io"
 
 [tool.setuptools.dynamic]
-version = {attr = "plexapi.const.__version__"}
+version = { attr = "plexapi.const.__version__" }
 
 [build-system]
 requires = ["setuptools>=77.0"]
@@ -49,8 +51,17 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 markers = [
-    "client: this is a client test.",
-    "req_client: require a client to run this test.",
     "anonymously: test plexapi anonymously.",
     "authenticated: test plexapi authenticated.",
+    "client: this is a client test.",
+    "req_client: require a client to run this test.",
 ]
+
+[tool.isort]
+profile = "black"
+line_length = 99
+combine_as_imports = true
+force_grid_wrap = 2
+
+[tool.black]
+line_length = 99

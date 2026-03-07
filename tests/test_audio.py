@@ -1,11 +1,15 @@
 from urllib.parse import quote_plus
 
 import pytest
+
 import plexapi
 from plexapi.exceptions import BadRequest
 
-from . import conftest as utils
-from . import test_media, test_mixins
+from . import (
+    conftest as utils,
+    test_media,
+    test_mixins,
+)
 
 
 def test_audio_Artist_attr(artist):
@@ -155,9 +159,9 @@ def test_audio_Artist_media_tags(artist):
 
 def test_audio_Artist_PlexWebURL(plex, artist):
     url = artist.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(artist.key) in url
 
 
@@ -290,9 +294,9 @@ def test_audio_Album_media_tags(album):
 
 def test_audio_Album_PlexWebURL(plex, album):
     url = album.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(album.key) in url
 
 
@@ -474,9 +478,9 @@ def test_audio_Track_media_tags(track):
 
 def test_audio_Track_PlexWebURL(plex, track):
     url = track.getWebURL()
-    assert url.startswith('https://app.plex.tv/desktop')
+    assert url.startswith("https://app.plex.tv/desktop")
     assert plex.machineIdentifier in url
-    assert 'details' in url
+    assert "details" in url
     assert quote_plus(track.parentKey) in url
 
 

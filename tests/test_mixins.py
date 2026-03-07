@@ -1,7 +1,11 @@
 from datetime import datetime
 
 import pytest
-from plexapi.exceptions import BadRequest, NotFound
+
+from plexapi.exceptions import (
+    BadRequest,
+    NotFound,
+)
 
 from . import conftest as utils
 
@@ -203,7 +207,7 @@ def _test_mixins_lock_image(obj, attr):
     cap_attr = attr[:-1].capitalize()
     lock_img_method = getattr(obj, "lock" + cap_attr)
     unlock_img_method = getattr(obj, "unlock" + cap_attr)
-    field = "thumb" if attr == 'posters' else attr[:-1]
+    field = "thumb" if attr == "posters" else attr[:-1]
     _fields = lambda: [f.name for f in obj.fields]
     assert field not in _fields()
     lock_img_method()
@@ -259,7 +263,8 @@ def _test_mixins_edit_image(obj, attr):
     upload_img_method(filepath=utils.STUB_IMAGE_PATH)
     images = get_img_method()
     file_image = [
-        i for i in images
+        i
+        for i in images
         if i.ratingKey.startswith("upload://") and i.ratingKey.endswith(CUTE_CAT_SHA1)
     ]
     assert file_image
@@ -273,7 +278,8 @@ def _test_mixins_edit_image(obj, attr):
         upload_img_method(filepath=f)
         images = get_img_method()
         file_image = [
-            i for i in images
+            i
+            for i in images
             if i.ratingKey.startswith("upload://") and i.ratingKey.endswith(CUTE_CAT_SHA1)
         ]
         assert file_image
@@ -344,7 +350,8 @@ def _test_mixins_edit_theme(obj):
     obj.uploadTheme(filepath=utils.STUB_MP3_PATH)
     themes = obj.themes()
     file_theme = [
-        t for t in themes
+        t
+        for t in themes
         if t.ratingKey.startswith("upload://") and t.ratingKey.endswith(AUDIO_STUB_SHA1)
     ]
     assert file_theme

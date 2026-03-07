@@ -4,10 +4,15 @@ import time
 from datetime import datetime
 from functools import partial
 
-import plexapi
 import pytest
 import requests
-from PIL import Image, ImageColor, ImageStat
+from PIL import (
+    Image,
+    ImageColor,
+    ImageStat,
+)
+
+import plexapi
 from plexapi.client import PlexClient
 from plexapi.exceptions import NotFound
 from plexapi.myplex import MyPlexAccount
@@ -17,9 +22,17 @@ from plexapi.utils import createMyPlexDevice
 from .payloads import ACCOUNT_XML
 
 try:
-    from unittest.mock import patch, MagicMock, mock_open
+    from unittest.mock import (
+        MagicMock,
+        mock_open,
+        patch,
+    )
 except ImportError:
-    from mock import patch, MagicMock, mock_open
+    from mock import (
+        MagicMock,
+        mock_open,
+        patch,
+    )
 
 
 SERVER_BASEURL = plexapi.CONFIG.get("auth.server_baseurl")
@@ -41,8 +54,8 @@ CONTENTRATINGS = {"TV-14", "TV-MA", "G", "NR", "Not Rated"}
 FRAMERATES = {"24p", "PAL", "NTSC"}
 PROFILES = {"advanced simple", "main", "constrained baseline"}
 RESOLUTIONS = {"sd", "480", "576", "720", "1080"}
-HW_DECODERS = {'dxva2', 'videotoolbox', 'mediacodecndk', 'vaapi', 'nvdec'}
-HW_ENCODERS = {'qsv', 'mf', 'videotoolbox', 'mediacodecndk', 'vaapi', 'nvenc', 'x264'}
+HW_DECODERS = {"dxva2", "videotoolbox", "mediacodecndk", "vaapi", "nvdec"}
+HW_ENCODERS = {"qsv", "mf", "videotoolbox", "mediacodecndk", "vaapi", "nvenc", "x264"}
 ENTITLEMENTS = {
     "ios",
     "roku",
@@ -59,7 +72,7 @@ SYNC_DEVICE_HEADERS = {
     "X-Plex-Platform-Version": "11.4.1",
     "X-Plex-Device": "iPhone",
     "X-Plex-Device-Name": "Test Sync Device",
-    "X-Plex-Client-Identifier": SYNC_DEVICE_IDENTIFIER
+    "X-Plex-Client-Identifier": SYNC_DEVICE_IDENTIFIER,
 }
 
 TEST_AUTHENTICATED = "authenticated"
@@ -72,13 +85,13 @@ STUB_MOVIE_PATH = os.path.join(BASE_DIR_PATH, "tests", "data", "video_stub.mp4")
 STUB_MP3_PATH = os.path.join(BASE_DIR_PATH, "tests", "data", "audio_stub.mp3")
 STUB_IMAGE_PATH = os.path.join(BASE_DIR_PATH, "tests", "data", "cute_cat.jpg")
 # For the default Docker bootstrap test Plex Media Server data directory
-BOOTSTRAP_DATA_PATH = os.path.join(BASE_DIR_PATH, "plex", "db", "Library", "Application Support", "Plex Media Server")
+BOOTSTRAP_DATA_PATH = os.path.join(
+    BASE_DIR_PATH, "plex", "db", "Library", "Application Support", "Plex Media Server"
+)
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--client", action="store_true", default=False, help="Run client tests."
-    )
+    parser.addoption("--client", action="store_true", default=False, help="Run client tests.")
 
 
 def pytest_generate_tests(metafunc):
@@ -283,11 +296,7 @@ def collection(plex, movies, movie):
     try:
         return movies.collection("Test Collection")
     except NotFound:
-        return plex.createCollection(
-            title="Test Collection",
-            section=movies,
-            items=movie
-        )
+        return plex.createCollection(title="Test Collection", section=movies, items=movie)
 
 
 @pytest.fixture()
@@ -295,10 +304,7 @@ def playlist(plex, tvshows, season):
     try:
         return tvshows.playlist("Test Playlist")
     except NotFound:
-        return plex.createPlaylist(
-            title="Test Playlist",
-            items=season.episodes()[:3]
-        )
+        return plex.createPlaylist(title="Test Playlist", items=season.episodes()[:3])
 
 
 @pytest.fixture()
@@ -332,8 +338,7 @@ def shared_username(account):
             user.username
             and user.email
             and user.id
-            and username.lower()
-            in (user.username.lower(), user.email.lower(), str(user.id))
+            and username.lower() in (user.username.lower(), user.email.lower(), str(user.id))
         ):
             return username
     pytest.skip(f"Shared user {username} wasn't found in your MyPlex account")
@@ -341,9 +346,7 @@ def shared_username(account):
 
 @pytest.fixture()
 def monkeydownload(request, monkeypatch):
-    monkeypatch.setattr(
-        "plexapi.utils.download", partial(plexapi.utils.download, mocked=True)
-    )
+    monkeypatch.setattr("plexapi.utils.download", partial(plexapi.utils.download, mocked=True))
     yield
     monkeypatch.undo()
 
@@ -452,9 +455,7 @@ def detect_color_image(file, thumb_size=150, MSE_cutoff=22, adjust_color_bias=Tr
             bias = [b - sum(bias) / 3 for b in bias]
         for pixel in thumb.get_flattened_data():
             mu = sum(pixel) / 3
-            sse += sum(
-                (pixel[i] - mu - bias[i]) * (pixel[i] - mu - bias[i]) for i in [0, 1, 2]
-            )
+            sse += sum((pixel[i] - mu - bias[i]) * (pixel[i] - mu - bias[i]) for i in [0, 1, 2])
         mse = float(sse) / (thumb_size * thumb_size)
         return "grayscale" if mse <= MSE_cutoff else "color"
     elif len(bands) == 1:
