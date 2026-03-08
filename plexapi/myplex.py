@@ -9,6 +9,10 @@ from datetime import (
     timedelta,
     timezone,
 )
+from typing import (
+    Any,
+    Optional,
+)
 from urllib.parse import (
     parse_qsl,
     urlencode,
@@ -17,20 +21,7 @@ from urllib.parse import (
 )
 
 import requests
-
-try:
-    import cryptography
-    from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ed25519
-except ImportError:  # pragma: no cover
-    cryptography = None
-
-try:
-    import jwt
-except ImportError:  # pragma: no cover
-    jwt = None
-
-from requests.status_codes import _codes as codes
+from requests.status_codes import codes
 
 from plexapi import (
     BASE_HEADERS,
@@ -60,6 +51,20 @@ from plexapi.sync import (
     SyncItem,
     SyncList,
 )
+
+cryptography: Optional[Any]
+try:
+    import cryptography
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+except ImportError:  # pragma: no cover
+    cryptography = None
+
+jwt: Optional[Any]
+try:
+    import jwt
+except ImportError:  # pragma: no cover
+    jwt = None
 
 
 class MyPlexAccount(PlexObject):

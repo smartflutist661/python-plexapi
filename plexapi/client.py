@@ -3,7 +3,7 @@ import weakref
 from xml.etree import ElementTree
 
 import requests
-from requests.status_codes import _codes as codes
+from requests.status_codes import codes
 
 from plexapi import (
     BASE_HEADERS,

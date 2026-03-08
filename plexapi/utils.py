@@ -22,11 +22,12 @@ from threading import (
     Event,
     Thread,
 )
+from typing import Optional
 from urllib.parse import quote
 from xml.etree import ElementTree
 
 import requests
-from requests.status_codes import _codes as codes
+from requests.status_codes import codes
 
 from plexapi.exceptions import (
     BadRequest,
@@ -34,6 +35,7 @@ from plexapi.exceptions import (
     Unauthorized,
 )
 
+tqdm: Optional[type]
 try:
     from tqdm import tqdm
 except ImportError:
@@ -112,7 +114,7 @@ TAGTYPES = {
 REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}
 
 # Plex Objects - Populated at runtime
-PLEXOBJECTS = {}
+PLEXOBJECTS: dict = {}
 
 
 class SecretsFilter(logging.Filter):

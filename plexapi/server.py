@@ -2,7 +2,7 @@ import os
 from urllib.parse import urlencode
 
 import requests
-from requests.status_codes import _codes as codes
+from requests.status_codes import codes
 
 # Need these imports to populate utils.PLEXOBJECTS
 from plexapi import (  # noqa: F401

@@ -42,7 +42,7 @@ logformat = CONFIG.get(
     "log.format", "%(asctime)s %(module)12s:%(lineno)-4s %(levelname)-9s %(message)s"
 )
 loglevel = CONFIG.get("log.level", "INFO").upper()
-loghandler = logging.NullHandler()
+loghandler: logging.Handler = logging.NullHandler()
 
 if logfile:  # pragma: no cover
     logbackups = CONFIG.get("log.backup_count", 3, int)

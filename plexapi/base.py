@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 PlexObjectT = TypeVar("PlexObjectT", bound="PlexObject")
 MediaContainerT = TypeVar("MediaContainerT", bound="MediaContainer")
 
-USER_DONT_RELOAD_FOR_KEYS = set()
+USER_DONT_RELOAD_FOR_KEYS: set = set()
 _DONT_RELOAD_FOR_KEYS = {"key", "sourceURI"}
 OPERATORS = {
     "exact": lambda v, q: v == q,
@@ -106,9 +106,9 @@ class PlexObject(metaclass=PlexObjectMeta):
         parent (:class:`~plexapi.base.PlexObject`): The parent object that this object is built from (optional).
     """
 
-    TAG = None  # xml element tag
-    TYPE = None  # xml element type
-    key = None  # plex relative url
+    TAG: Optional[str] = None  # xml element tag
+    TYPE: Optional[str] = None  # xml element type
+    key: Optional[str] = None  # plex relative url
 
     def __init__(self, server, data, initpath=None, parent=None):
         self._server = server
@@ -452,7 +452,7 @@ class PlexObject(metaclass=PlexObjectMeta):
                 results.append(elem.attrib.get(attr))
         return results
 
-    def reload(self, key=None, **kwargs):
+    def reload(self, *, key: Optional[str] = None, **kwargs):
         """Reload the data for this object.
 
         Parameters:
@@ -492,7 +492,7 @@ class PlexObject(metaclass=PlexObjectMeta):
         """
         return self._reload(key=key, **kwargs)
 
-    def _reload(self, key=None, _overwriteNone=True, **kwargs):
+    def _reload(self, *, key: Optional[str] = None, _overwriteNone=True, **kwargs):
         """Perform the actual reload."""
         details_key = self._buildDetailsKey(**kwargs) if kwargs else self._details_key
         key = key or details_key or self.key
@@ -1104,7 +1104,7 @@ class PlexSession:
 
         return myPlexAccount.user(self._username)
 
-    def reload(self):
+    def reload(self, **kwargs):
         """Reload the data for the session.
         Note: This will return the object as-is if the session is no longer active.
         """
@@ -1193,6 +1193,9 @@ class MediaContainer(
     """
 
     TAG = "MediaContainer"
+    size: int
+    totalSize: int
+    offset: int
 
     def __init__(
         self,

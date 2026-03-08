@@ -1,7 +1,10 @@
 import json
 import socket
 import threading
-from typing import Callable
+from typing import (
+    Callable,
+    Optional,
+)
 
 from plexapi import log
 
@@ -41,9 +44,9 @@ class AlertListener(threading.Thread):
     def __init__(
         self,
         server,
-        callback: Callable = None,
-        callbackError: Callable = None,
-        ws_socket: socket = None,
+        callback: Optional[Callable] = None,
+        callbackError: Optional[Callable] = None,
+        ws_socket: Optional[socket.socket] = None,
     ):
         super(AlertListener, self).__init__()
         self.daemon = True

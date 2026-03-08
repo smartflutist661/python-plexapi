@@ -36,6 +36,8 @@ dev = [
     "sphinx",
     "sphinx-rtd-theme",
     "tqdm",
+    "types-requests",
+    "types-tqdm",
     "websocket-client",
 ]
 
